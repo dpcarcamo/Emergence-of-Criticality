@@ -3,6 +3,7 @@
 
 %% RG vector fields for fixed N values
 % Standalone fixed-N vector-field plot.
+% Figure mapping: this script generates the Fig. 3b vector-field panels.
 
 clearvars
 clc

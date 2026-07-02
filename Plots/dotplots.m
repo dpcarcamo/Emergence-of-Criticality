@@ -1,6 +1,8 @@
 %% KEEP PLOTS
 
 %% Box in (mu,chi) and image in (h,lambda)
+% Figure mapping: this script generates the Fig. 3c grid and mapped box
+% boundaries in statistics space and model space.
 %% Precompute inverse map data
 clear; clc; 
 

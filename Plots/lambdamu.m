@@ -1,5 +1,8 @@
 %% KEEP PLOTS
 % File to plot the double well theory
+% Figure mapping: this script generates the Fig. 5c-d comparison between
+% exact finite-size inference and the double-well approximation. It also
+% opens auxiliary h/lambda diagnostic figures.
 
 
 %% Plot one population from each dataset: refit h/lambda vs theory

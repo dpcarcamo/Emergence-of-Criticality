@@ -1,6 +1,8 @@
 %% KEEP PLOTS
 
 % Plots data points in (mu, chi) and stored data points in (h, lambda).
+% Figure mapping: Fig. 1 uses the full data points in statistics space and
+% model space. Fig. 4 uses the N = 20, 100, 1000, and full-data points.
 
 clear
 clc

@@ -1,6 +1,8 @@
 %% KEEP PLOTS
 
 %% Contour plots for Jeffreys prior and Jacobian
+% Figure mapping: the Jeffreys-prior contours are Fig. 3a. The Jacobian
+% contours are an alternate diagnostic using the same grid.
 
 clear; clc;
 

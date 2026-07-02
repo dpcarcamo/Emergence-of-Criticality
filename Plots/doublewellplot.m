@@ -1,5 +1,7 @@
 %% KEEP PLOTS
 % Used for creating the cartoon double well plot
+% Figure mapping: this script generates the Fig. 5b free-energy landscape
+% for fixed statistics while the system size changes.
 
 l = 1.5;
 h = 0.01;

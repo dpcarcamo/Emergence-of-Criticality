@@ -2,7 +2,9 @@
 
 % Used to make the cartoon plot of the jacobian. Plots circles in h-lambda
 % space and sees where they land and distort in mu chi. Also makes plots of
-% the suscpetibility and Jacobian for changing h at fixed lambda. 
+% the susceptibility and Jacobian for changing h at fixed lambda. 
+% Figure mapping: Fig. 2a-b are the circle mapping panels, Fig. 2c is the
+% susceptibility versus h, and Fig. 2d is the Jacobian versus h.
 
 clear
 clc
