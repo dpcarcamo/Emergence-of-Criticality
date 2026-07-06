@@ -26,6 +26,10 @@ addpath(strcat(newPath{1}, '\Stringer'))
 n = 20;          % system size for muChiExact2Spin
 r = 0.03;        % radius of each circle in (h,lambda) space
 numPts = 400;    % number of points along each circle boundary
+axisLabelFontSize = 30;
+tickLabelFontSize = 18;
+textFontName = 'Helvetica';
+labelFont = ['\fontname{' textFontName '}'];
 
 centers = [];
 
@@ -46,11 +50,11 @@ ls = centers(:,2);
 hNorm = (hs - min(hs)) / (max(hs) - min(hs));
 lNorm = (ls - min(ls)) / (max(ls) - min(ls));
 
-grayLight = [0.35 0.35 0.35];
+grayLight = [0.25 0.25 0.25];
 grayDark = [0.75 0.75 0.75];
 
-colorLight = [0.3098    0.4667    0.8392]*1.15;  % nice solid blue
-colorDark = [0.7176    0.4902    0.7804];  % lighter blue
+colorLight = [0.9    0    0];  % nice solid blue
+colorDark = [0.9    0.9    0.9];  % lighter blue
 
 cols = zeros(size(centers,1),3);
 
@@ -89,8 +93,12 @@ for k = 1:size(centers,1)
         'EdgeColor', 'none');
 end
 
-xlabel('h', 'FontSize', 22)
-ylabel('\lambda', 'FontSize', 22)
+xlabel([labelFont 'External field {\ith}'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
+ylabel([labelFont 'Interaction strength {\itJ}'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
 
 axis equal
 axis square
@@ -99,7 +107,8 @@ ylim([0,2])
 
 ax = gca;
 
-ax.FontSize = 16;      % tick labels
+ax.FontName = textFontName;
+ax.FontSize = tickLabelFontSize;      % tick labels
 ax.LineWidth = 1.5;
 
 % --- Plot mapped filled curves in (mu, chi) space ---
@@ -129,23 +138,28 @@ for k = 1:size(centers,1)
 end
 
 x = linspace(-1,-0.0001,500);
-plot(x, 1-x.^2, 'b', 'LineWidth', 1.5)
+plot(x, 1-x.^2, 'Color', [0.5765    0.5843    0.5961], 'LineWidth', 1.5)
 
-xlabel('\mu', 'FontSize', 28)
-ylabel('\chi', 'FontSize', 28)
+xlabel([labelFont 'Average activity \langle\mu\rangle'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
+ylabel([labelFont 'Susceptibility \chi'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
 
 axis square
 xlim([-1,-0])
 ylim([0.05, 5])
 ax = gca;
 
-ax.FontSize = 20;      % tick labels
+ax.FontName = textFontName;
+ax.FontSize = tickLabelFontSize;      % tick labels
 ax.LineWidth = 1.5;    % thicker axis lines
 
 set(gcf, 'Renderer', 'painters');
 %yscale log
 %%
-showLabels = true;
+showLabels = false;
 hs = linspace(-2,-0.001, 1000); 
 
 figure 
@@ -175,7 +189,7 @@ for l = 0.2:0.25:1.95
     plot(hs, chis, color=color, LineWidth=2)
 
     if showLabels
-        text(hs(end), chis(end), sprintf('  \\lambda = %.2f', l), ...
+        text(hs(end), chis(end), sprintf('  J = %.2f', l), ...
             'FontSize', 14, ...
             'Color', color, ...
             'VerticalAlignment', 'middle')
@@ -184,15 +198,20 @@ for l = 0.2:0.25:1.95
 end
 
 
-xlabel('h', 'FontSize', 28)
-ylabel('\chi', 'FontSize', 28)
+xlabel([labelFont 'External field {\ith}'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
+ylabel([labelFont 'Susceptibility \chi'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
 
 axis square
 ax = gca;
 %yscale log
 xscale log
 
-ax.FontSize = 20;      % tick labels
+ax.FontName = textFontName;
+ax.FontSize = tickLabelFontSize;      % tick labels
 ax.LineWidth = 1.5;    % thicker axis lines
 
 set(gcf, 'Renderer', 'painters');
@@ -229,7 +248,7 @@ for l = 0.2:0.25:1.95
     plot(hs, Jacs, color=color, LineWidth=2)
 
     if showLabels
-        text(hs(end), Jacs(end), sprintf('  \\lambda = %.2f', l), ...
+        text(hs(end), Jacs(end), sprintf('  J = %.2f', l), ...
             'FontSize', 14, ...
             'Color', color, ...
             'VerticalAlignment', 'middle')
@@ -238,15 +257,20 @@ for l = 0.2:0.25:1.95
 end
 
 
-xlabel('h', 'FontSize', 22)
-ylabel('Jacobian', 'FontSize', 22)
+xlabel([labelFont 'External field {\ith}'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
+ylabel([labelFont 'Jacobian determinant'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
 %yscale log
 
 axis square
 ax = gca;
 box on
 
-ax.FontSize = 20;      % tick labels
+ax.FontName = textFontName;
+ax.FontSize = tickLabelFontSize;      % tick labels
 ax.LineWidth = 1.5;    % thicker axis lines
 
 set(gcf, 'Renderer', 'painters');

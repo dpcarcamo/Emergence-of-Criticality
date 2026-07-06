@@ -26,6 +26,8 @@ fullMarkerSizeRange = [45 220];
 fullNRange = fullDataNRange(files);
 axisLabelFontSize = 30;
 tickLabelFontSize = 18;
+textFontName = 'Helvetica';
+labelFont = ['\fontname{' textFontName '}'];
 hZeroPlot = -0.00005;
 criticalPointSize = 45;
 modelYLim = [0, 2.5];
@@ -91,15 +93,16 @@ for f = 1:length(figureSets)
     ylim([0.05, 70])
     xlim([-1, -0.8])
     axis square
-    xlabel('Average activity $\langle \mu \rangle$', ...
-        'Interpreter', 'latex', ...
+    xlabel([labelFont 'Average activity \langle\mu\rangle'], ...
+        'Interpreter', 'tex', ...
         'FontSize', axisLabelFontSize)
-    ylabel('Susceptibility $\chi$', ...
-        'Interpreter', 'latex', ...
+    ylabel([labelFont 'Susceptibility \chi'], ...
+        'Interpreter', 'tex', ...
         'FontSize', axisLabelFontSize)
     set(gca, 'YScale', 'log')
     set(gca, 'TickDir', 'both')
     ax = gca;
+    ax.FontName = textFontName;
     ax.FontSize = tickLabelFontSize;
     box on
 end
@@ -111,7 +114,7 @@ for f = 1:length(figureSets)
     hold on
 
     plot(hZeroPlot + 0 * linspace(1, 2), linspace(1, 2.5), 'r', 'LineWidth', 2)
-    plot(linspace(-1.4, -0.00001), 0 * linspace(1, 2.5), 'Color', referenceLineColor, 'LineWidth', 2)
+    plot(linspace(-1.4, hZeroPlot), 0 * linspace(1, 2.5), 'Color', referenceLineColor, 'LineWidth', 2)
 
     currentSet = figureSets{f};
     scaleFullDataMarkers = isFullDataOnlySet(currentSet);
@@ -164,11 +167,11 @@ for f = 1:length(figureSets)
         'MarkerEdgeColor', 'r')
 
     axis square
-    xlabel('External field $h$', ...
-        'Interpreter', 'latex', ...
+    xlabel([labelFont 'External field {\ith}'], ...
+        'Interpreter', 'tex', ...
         'FontSize', axisLabelFontSize)
-    ylabel('Interaction strength $J$', ...
-        'Interpreter', 'latex', ...
+    ylabel([labelFont 'Interaction strength {\itJ}'], ...
+        'Interpreter', 'tex', ...
         'FontSize', axisLabelFontSize)
     xscale log
     box on
@@ -176,9 +179,10 @@ for f = 1:length(figureSets)
     xlim([-1, hZeroPlot])
     xticks([-1, -0.1, -0.01, -0.001, -0.0001, hZeroPlot])
     xticklabels({'-10^{0}', '-10^{-1}', '-10^{-2}', '-10^{-3}', ...
-        sprintf('-10^{-4}\n'), sprintf('\n0')})
+        '-10^{-4}', '0'})
     ylim(modelYLim)
     ax = gca;
+    ax.FontName = textFontName;
     ax.FontSize = tickLabelFontSize;
     ax.TickLabelInterpreter = 'tex';
 end
@@ -217,15 +221,16 @@ scatter(0, 1, criticalPointSize, ...
 axis square
 xlim([-1, 1])
 ylim(modelYLim)
-xlabel('External field $h$', ...
-    'Interpreter', 'latex', ...
+xlabel([labelFont 'External field {\ith}'], ...
+    'Interpreter', 'tex', ...
     'FontSize', axisLabelFontSize)
-ylabel('Interaction strength $J$', ...
-    'Interpreter', 'latex', ...
+ylabel([labelFont 'Interaction strength {\itJ}'], ...
+    'Interpreter', 'tex', ...
     'FontSize', axisLabelFontSize)
 box on
 set(gca, 'TickDir', 'both')
 ax = gca;
+ax.FontName = textFontName;
 ax.FontSize = tickLabelFontSize;
 
 function [Data, hs, ls] = loadDataFile(fileName)
