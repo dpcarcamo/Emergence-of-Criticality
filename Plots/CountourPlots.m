@@ -13,17 +13,19 @@ plotsDir = fileparts(mfilename('fullpath'));
 %% Colormap
 
 colors = [
-    [10, 10, 10] / 256
-    [180, 20, 0] / 256
-    [195, 91, 29] / 256
-    [235, 172, 71] / 256
-    [245, 245, 245] / 256
+    [0.25 0.25 0.25]
+    [0.9 0 0]
 ];
 cmap = interpolateColors(colors, 256);
 axisLabelFontSize = 30;
 tickLabelFontSize = 26;
-textFontName = 'Calibri';
+textFontName = 'Helvetica';
 labelFont = ['\fontname{' textFontName '}'];
+plotPanelsSeparately = false;
+criticalHPlot = -0.0005;
+criticalLineWidth = 2;
+criticalPointSize = 85;
+criticalColor = 'r';
 
 %% Grid
 
@@ -66,39 +68,58 @@ end
 plotContourSet( ...
     F_jeffreys, h_vals, lambda_vals, plot_lambda_vals, Ns, cmap, ...
     [-7 8], 'Contour of log Jefferies Prior (h,J)', ...
-    labelFont, textFontName, axisLabelFontSize, tickLabelFontSize);
+    labelFont, textFontName, axisLabelFontSize, tickLabelFontSize, ...
+    plotPanelsSeparately, criticalHPlot, criticalLineWidth, criticalPointSize, criticalColor);
+plotStandaloneLogColorbar(cmap, [-7 8], ...
+    'Jeffreys prior', textFontName, tickLabelFontSize);
 
 %% Plot Jacobian
 
 plotContourSet( ...
     F_jacobian, h_vals, lambda_vals, plot_lambda_vals, Ns, cmap, ...
-    [-9 5], 'Contour of log Jacobian (h,J)', ...
-    labelFont, textFontName, axisLabelFontSize, tickLabelFontSize);
+    [-9 6], 'Contour of log Jacobian (h,J)', ...
+    labelFont, textFontName, axisLabelFontSize, tickLabelFontSize, ...
+    plotPanelsSeparately, criticalHPlot, criticalLineWidth, criticalPointSize, criticalColor);
+plotStandaloneLogColorbar(cmap, [-9 6], ...
+    'Jacobian determinant', textFontName, tickLabelFontSize);
 
-function plotContourSet(F, h_vals, lambda_vals, plot_lambda_vals, Ns, cmap, c_limits, plot_title, labelFont, textFontName, axisLabelFontSize, tickLabelFontSize)
-    x = linspace(1, 3);
+function plotContourSet(F, h_vals, lambda_vals, plot_lambda_vals, Ns, cmap, c_limits, plot_title, labelFont, textFontName, axisLabelFontSize, tickLabelFontSize, plotPanelsSeparately, criticalHPlot, criticalLineWidth, criticalPointSize, criticalColor)
+    if ~plotPanelsSeparately
+        figure('Name', plot_title, 'Color', 'w')
+        tiledlayout(1, length(Ns), ...
+            'TileSpacing', 'compact', ...
+            'Padding', 'compact');
+    end
 
     for count = 1:length(Ns)
-        figure
+        if plotPanelsSeparately
+            figure('Name', sprintf('%s, N = %d', plot_title, Ns(count)), 'Color', 'w')
+        else
+            nexttile
+        end
+
         hold on
         contourf(h_vals, plot_lambda_vals, log10(abs(F(lambda_vals > 0.01, :, count))), 15)
         colormap(cmap)
         clim(c_limits)
-        colorbar('FontSize', tickLabelFontSize, 'FontName', textFontName)
+        %cb = colorbar('FontSize', tickLabelFontSize, 'FontName', textFontName);
+        %formatLogColorbar(cb, c_limits, textFontName, tickLabelFontSize)
         xlabel([labelFont 'External field {\ith}'], ...
             'Interpreter', 'tex', ...
             'FontSize', axisLabelFontSize)
-        ylabel([labelFont 'Interaction strength {\itJ}'], ...
-            'Interpreter', 'tex', ...
-            'FontSize', axisLabelFontSize)
-        title(sprintf('%s, N = %d', plot_title, Ns(count)))
+        if plotPanelsSeparately || count == 1
+            ylabel([labelFont 'Interaction strength {\itJ}'], ...
+                'Interpreter', 'tex', ...
+                'FontSize', axisLabelFontSize)
+        else
+            ylabel('')
+        end
+        %title(sprintf('%s, N = %d', plot_title, Ns(count)))
         axis square
-        scatter(0, 1, 'or', 'filled')
-        plot(0 * x, x, 'r')
 
-        xlim([-1, -0.0005])
+        xlim([-1, criticalHPlot])
         xscale log
-        xticks([-1, -0.1, -0.01, -0.001, -0.0005])
+        xticks([-1, -0.1, -0.01, -0.001, criticalHPlot])
         xticklabels({'-10^0', '-10^{-1}', '-10^{-2}', '-10^{-3}', '0'})
 
         set(gca, 'TickDir', 'both')
@@ -106,6 +127,55 @@ function plotContourSet(F, h_vals, lambda_vals, plot_lambda_vals, Ns, cmap, c_li
         ax.FontName = textFontName;
         ax.FontSize = tickLabelFontSize;
         box on
+
+        plot([criticalHPlot, criticalHPlot], [1, max(plot_lambda_vals)], ...
+            'Color', criticalColor, ...
+            'LineWidth', criticalLineWidth, ...
+            'Clipping', 'off')
+        scatter(criticalHPlot, 1, criticalPointSize, ...
+            'MarkerFaceColor', criticalColor, ...
+            'MarkerEdgeColor', criticalColor, ...
+            'Clipping', 'off')
+    end
+end
+
+function plotStandaloneLogColorbar(cmap, c_limits, colorbarLabel, textFontName, tickLabelFontSize)
+    figure('Name', [colorbarLabel, ' colorbar'], 'Color', 'w')
+    ax = axes;
+    colormap(ax, cmap)
+    clim(ax, c_limits)
+    axis(ax, 'off')
+
+    cb = colorbar(ax);
+    cb.FontSize = tickLabelFontSize;
+    cb.FontName = textFontName;
+    cb.Label.String = colorbarLabel;
+    cb.Label.FontSize = tickLabelFontSize;
+    cb.Label.FontName = textFontName;
+
+    formatLogColorbar(cb, c_limits, textFontName, tickLabelFontSize)
+end
+
+function formatLogColorbar(cb, c_limits, textFontName, tickLabelFontSize)
+    ticks = logColorbarTicks(c_limits);
+
+    cb.Ticks = ticks;
+    cb.TickLabels = arrayfun(@(x) sprintf('10^{%g}', x), ticks, 'UniformOutput', false);
+    cb.TickLabelInterpreter = 'tex';
+    cb.FontName = textFontName;
+    cb.FontSize = tickLabelFontSize;
+end
+
+function ticks = logColorbarTicks(c_limits)
+    minTick = ceil(c_limits(1));
+    maxTick = floor(c_limits(2));
+    allTicks = minTick:maxTick;
+
+    if numel(allTicks) <= 6
+        ticks = allTicks;
+    else
+        step = ceil((maxTick - minTick) / 5);
+        ticks = minTick:step:maxTick;
     end
 end
 

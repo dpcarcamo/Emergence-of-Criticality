@@ -22,15 +22,22 @@ markerSize = 70;
 markerEdgeColor = [0 0 0];
 markerLineWidth = 0.5;
 markerFaceAlpha = 0.75;
-fullMarkerSizeRange = [45 220];
+fullMarkerSizeRange = [85 240];
 fullNRange = fullDataNRange(files);
 axisLabelFontSize = 30;
 tickLabelFontSize = 18;
 textFontName = 'Helvetica';
 labelFont = ['\fontname{' textFontName '}'];
 hZeroPlot = -0.00005;
-criticalPointSize = 45;
+criticalPointSize = 85;
 modelYLim = [0, 2.5];
+statisticsXLim = [-1, -0.8];
+statisticsYLim = [0.05, 70];
+upperBoundShadeColor = [1, 0, 0];
+upperBoundShadeAlpha = 0.15;
+upperBoundLineWidth = 2;
+plotNGridFigure = true;
+gridNValues = [20 100 1000];
 
 % -1 denotes the final/full data point.
 figureSets = {[-1]};
@@ -90,8 +97,8 @@ for f = 1:length(figureSets)
     x = linspace(-1, 0, 1000);
     plot(x, 1 - x.^2, 'LineWidth', 2, 'Color', referenceLineColor)
 
-    ylim([0.05, 70])
-    xlim([-1, -0.8])
+    ylim(statisticsYLim)
+    xlim(statisticsXLim)
     axis square
     xlabel([labelFont 'Average activity \langle\mu\rangle'], ...
         'Interpreter', 'tex', ...
@@ -107,13 +114,70 @@ for f = 1:length(figureSets)
     box on
 end
 
+%% Plot full data in statistics space with upper-bound shaded region
+
+figure
+hold on
+
+x = linspace(statisticsXLim(1), statisticsXLim(2), 1000);
+independentBound = 1 - x.^2;
+upperBound = x.*(1 - x.^2)./(x - atanh(x).*(1 - x.^2));
+validShade = isfinite(upperBound) & upperBound > 0 & upperBound < statisticsYLim(2);
+
+fill([x(validShade), fliplr(x(validShade))], ...
+    [upperBound(validShade), statisticsYLim(2) * ones(1, nnz(validShade))], ...
+    upperBoundShadeColor, ...
+    'FaceAlpha', upperBoundShadeAlpha, ...
+    'EdgeColor', 'none')
+plot(x, independentBound, ...
+    'LineWidth', 2, ...
+    'Color', referenceLineColor)
+plot(x(validShade), upperBound(validShade), ...
+    'LineWidth', upperBoundLineWidth, ...
+    'Color', upperBoundShadeColor)
+
+for i = 1:length(files)
+    [Data, ~, ~] = loadDataFile(files(i));
+    [Nss, mus, chis] = summarizeData(Data);
+
+    baseColor = hex2rgb(colors(i));
+    [~, ~, ~, cFull] = dataAmountColors(baseColor);
+
+    fullNs = lastofarray(Nss);
+    fullMarkerSizes = markerSizeFromN(fullNs, fullNRange, fullMarkerSizeRange);
+
+    scatter(lastofarray(mus), lastofarray(chis), fullMarkerSizes, ...
+        'Marker', dataMarker, ...
+        'MarkerEdgeColor', markerEdgeColor, ...
+        'MarkerFaceColor', cFull, ...
+        'MarkerFaceAlpha', markerFaceAlpha, ...
+        'LineWidth', markerLineWidth)
+end
+
+ylim(statisticsYLim)
+xlim(statisticsXLim)
+axis square
+xlabel([labelFont 'Average activity \langle\mu\rangle'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
+ylabel([labelFont 'Susceptibility \chi'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
+set(gca, 'YScale', 'log')
+set(gca, 'TickDir', 'both')
+ax = gca;
+ax.FontName = textFontName;
+ax.FontSize = tickLabelFontSize;
+box on
+
 %% Plot h and lambda from data
 
 for f = 1:length(figureSets)
     figure
     hold on
 
-    plot(hZeroPlot + 0 * linspace(1, 2), linspace(1, 2.5), 'r', 'LineWidth', 2)
+    plot(hZeroPlot + 0 * linspace(1, modelYLim(2)), ...
+        linspace(1, modelYLim(2)), 'r', 'LineWidth', 2)
     plot(linspace(-1.4, hZeroPlot), 0 * linspace(1, 2.5), 'Color', referenceLineColor, 'LineWidth', 2)
 
     currentSet = figureSets{f};
@@ -187,7 +251,7 @@ for f = 1:length(figureSets)
     ax.TickLabelInterpreter = 'tex';
 end
 
-%% Plot full data in h and J with a linear h axis
+%% Plot full data in h and J with a linear h axis (Inset) 
 
 figure
 hold on
@@ -232,6 +296,126 @@ set(gca, 'TickDir', 'both')
 ax = gca;
 ax.FontName = textFontName;
 ax.FontSize = tickLabelFontSize;
+
+%% Plot N grid in statistics space and model space
+
+if plotNGridFigure
+    figure('Name', 'Data grid for fixed N', 'Color', 'w')
+    tiledlayout(2, length(gridNValues), ...
+        'TileSpacing', 'compact', ...
+        'Padding', 'compact');
+
+    for gridIdx = 1:length(gridNValues)
+        currentN = gridNValues(gridIdx);
+
+        nexttile(gridIdx)
+        hold on
+
+        for i = 1:length(files)
+            [Data, ~, ~] = loadDataFile(files(i));
+            [Nss, mus, chis] = summarizeData(Data);
+
+            baseColor = hex2rgb(colors(i));
+            [c20, c100, c1000, cFull] = dataAmountColors(baseColor);
+            pointColor = colorForN(currentN, c20, c100, c1000, cFull);
+            dim = datasetSearchDim(i);
+
+            [~, I] = min(abs(Nss - currentN), [], dim, "linear");
+            scatter(mus(I), chis(I), markerSize, ...
+                'Marker', dataMarker, ...
+                'MarkerEdgeColor', markerEdgeColor, ...
+                'MarkerFaceColor', pointColor, ...
+                'MarkerFaceAlpha', markerFaceAlpha, ...
+                'LineWidth', markerLineWidth)
+        end
+
+        x = linspace(-1, 0, 1000);
+        plot(x, 1 - x.^2, 'LineWidth', 2, 'Color', referenceLineColor)
+
+        ylim(statisticsYLim)
+        xlim(statisticsXLim)
+        axis square
+        % title(sprintf('N = %g', currentN), ...
+        %     'FontName', textFontName, ...
+        %     'FontSize', tickLabelFontSize)
+        xlabel([labelFont 'Average activity \langle\mu\rangle'], ...
+            'Interpreter', 'tex', ...
+            'FontSize', axisLabelFontSize)
+        if gridIdx == 1
+            ylabel([labelFont 'Susceptibility \chi'], ...
+                'Interpreter', 'tex', ...
+                'FontSize', axisLabelFontSize)
+        else
+            ylabel('')
+        end
+        set(gca, 'YScale', 'log')
+        set(gca, 'TickDir', 'both')
+        ax = gca;
+        ax.FontName = textFontName;
+        ax.FontSize = tickLabelFontSize;
+        box on
+    end
+
+    for gridIdx = 1:length(gridNValues)
+        currentN = gridNValues(gridIdx);
+
+        nexttile(length(gridNValues) + gridIdx)
+        hold on
+
+        plot(hZeroPlot + 0 * linspace(1, modelYLim(2)), ...
+            linspace(1, modelYLim(2)), 'r', 'LineWidth', 2)
+        plot(linspace(-1.4, hZeroPlot), 0 * linspace(1, 2.5), ...
+            'Color', referenceLineColor, ...
+            'LineWidth', 2)
+
+        for i = 1:length(files)
+            [Data, hs, ls] = loadDataFile(files(i));
+            [Nss, ~, ~] = summarizeData(Data);
+
+            baseColor = hex2rgb(colors(i));
+            [c20, c100, c1000, cFull] = dataAmountColors(baseColor);
+            pointColor = colorForN(currentN, c20, c100, c1000, cFull);
+            dim = datasetSearchDim(i);
+
+            [~, I] = min(abs(Nss - currentN), [], dim, "linear");
+            scatter(hs(I), ls(I), markerSize, ...
+                'Marker', dataMarker, ...
+                'MarkerEdgeColor', markerEdgeColor, ...
+                'MarkerFaceColor', pointColor, ...
+                'MarkerFaceAlpha', markerFaceAlpha, ...
+                'LineWidth', markerLineWidth)
+        end
+
+        scatter(hZeroPlot, 1, criticalPointSize, ...
+            'Marker', dataMarker, ...
+            'MarkerFaceColor', 'r', ...
+            'MarkerEdgeColor', 'r')
+
+        axis square
+        xlabel([labelFont 'External field {\ith}'], ...
+            'Interpreter', 'tex', ...
+            'FontSize', axisLabelFontSize)
+        if gridIdx == 1
+            ylabel([labelFont 'Interaction strength {\itJ}'], ...
+                'Interpreter', 'tex', ...
+                'FontSize', axisLabelFontSize)
+        else
+            ylabel('')
+        end
+        xscale log
+        box on
+        set(gca, 'TickDir', 'both')
+        xlim([-1, hZeroPlot])
+        xticks([-1, -0.1, -0.01, -0.001, -0.0001, hZeroPlot])
+        xticklabels({'-10^{0}', '-10^{-1}', '-10^{-2}', '-10^{-3}', ...
+            '-10^{-4}', '0'})
+        ylim(modelYLim)
+        ax = gca;
+        ax.FontName = textFontName;
+        ax.FontSize = tickLabelFontSize;
+        ax.TickLabelInterpreter = 'tex';
+    end
+end
 
 function [Data, hs, ls] = loadDataFile(fileName)
     obj = load(fileName);

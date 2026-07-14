@@ -7,14 +7,24 @@ l = 1.5;
 h = 0.01;
 N = 20;
 
+Ns = [20, 50, 100, 200, 1000];
+colors = ["#f9cd6b", "#edb34f", "#c2591c", "#ba340d", "#b41a02"];
+lineWidth = 1.5;
+axisLabelFontSize = 20;
+tickLabelFontSize = 18;
+legendFontSize = 14;
+textFontName = 'Helvetica';
+labelFont = ['\fontname{' textFontName '}'];
+
 figure
 hold on
 
 x = linspace(-1,1);
 
-
-Ns = [20,50, 100, 200, 1000];
 labels = strings(size(Ns));  % store legend entries
+if numel(colors) < numel(Ns)
+    error('colors must contain one color for each entry in Ns.')
+end
 
 for k = 1:length(Ns)
     N = Ns(k);
@@ -34,7 +44,9 @@ for k = 1:length(Ns)
 
 delta = diff(top); %#ok<NASGU> % retained for optional spacing diagnostics
 
-    plot(x, -(y - top(end)), 'LineWidth', 1.5)
+    plot(x, -(y - top(end)), ...
+        'Color', colors(k), ...
+        'LineWidth', lineWidth)
 
     % Store label
     labels(k) = sprintf('N = %d', N);
@@ -43,13 +55,28 @@ end
 plot(x, x.*0, 'k--', 'DisplayName', 'y = 0')
 box on
 ax = gca;
-ax.FontSize = 20;      % tick labels
+ax.FontName = textFontName;
+ax.FontSize = tickLabelFontSize;
+set(gca, 'TickDir', 'both')
 
-ylabel('f(\mu)', 'FontSize', 18)
-xlabel('\mu', 'FontSize', 18)
+yLabelHandle = ylabel([labelFont 'Free energy {\itf}(\mu)'], ...
+    'Interpreter', 'tex', ...
+    'FontName', textFontName, ...
+    'FontSize', axisLabelFontSize)
+xLabelHandle = xlabel([labelFont 'Activity \mu'], ...
+    'Interpreter', 'tex', ...
+    'FontName', textFontName, ...
+    'FontSize', axisLabelFontSize)
 axis square
+xLabelHandle.FontName = textFontName;
+xLabelHandle.FontSize = axisLabelFontSize;
+yLabelHandle.FontName = textFontName;
+yLabelHandle.FontSize = axisLabelFontSize;
 
-legend(labels, 'Location', 'best')
+legend(labels, ...
+    'FontName', textFontName, ...
+    'FontSize', legendFontSize, ...
+    'Location', 'best')
 
 %%
 

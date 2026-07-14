@@ -26,8 +26,8 @@ addpath(strcat(newPath{1}, '\Stringer'))
 n = 20;          % system size for muChiExact2Spin
 r = 0.03;        % radius of each circle in (h,lambda) space
 numPts = 400;    % number of points along each circle boundary
-axisLabelFontSize = 30;
-tickLabelFontSize = 18;
+axisLabelFontSize = 36;
+tickLabelFontSize = 24;
 textFontName = 'Helvetica';
 labelFont = ['\fontname{' textFontName '}'];
 
@@ -155,6 +155,7 @@ ax = gca;
 ax.FontName = textFontName;
 ax.FontSize = tickLabelFontSize;      % tick labels
 ax.LineWidth = 1.5;    % thicker axis lines
+ax.TickLabelInterpreter = 'tex';
 
 set(gcf, 'Renderer', 'painters');
 %yscale log
@@ -217,6 +218,9 @@ ax.LineWidth = 1.5;    % thicker axis lines
 set(gcf, 'Renderer', 'painters');
 box on
 xlim([-1,-0.001])
+xticks([-1, -0.1, -0.01, -0.001])
+xticklabels({'-10^{0}', '-10^{-1}', '-10^{-2}', '-10^{-3}'})
+ax.TickLabelInterpreter = 'tex';
 %
 
 hs = linspace(-2,-0.001, 1000); 
@@ -272,8 +276,10 @@ box on
 ax.FontName = textFontName;
 ax.FontSize = tickLabelFontSize;      % tick labels
 ax.LineWidth = 1.5;    % thicker axis lines
+ax.TickLabelInterpreter = 'tex';
 
 set(gcf, 'Renderer', 'painters');
-xlim([-1,-0.001])
-
 xscale log
+xlim([-1,-0.001])
+xticks([-1, -0.1, -0.01, -0.001])
+xticklabels({'-10^{0}', '-10^{-1}', '-10^{-2}', '-10^{-3}'})

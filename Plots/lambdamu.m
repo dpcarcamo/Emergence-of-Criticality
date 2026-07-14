@@ -4,20 +4,35 @@
 % exact finite-size inference and the double-well approximation. It also
 % opens auxiliary h/lambda diagnostic figures.
 
-
+plotsDir = fileparts(mfilename('fullpath'));
+repoRoot = fileparts(plotsDir);
+addpath(repoRoot)
+addpath(fullfile(repoRoot, 'Allen'))
+addpath(fullfile(repoRoot, 'Hippo'))
+addpath(fullfile(repoRoot, 'Stringer'))
 %% Plot one population from each dataset: refit h/lambda vs theory
 
 files = ["Allenhldata.mat", "hippomuchidata.mat", "stringerhldata.mat"];
 
-markers = {'square', 'o', '^'};
-colors = ["#2676ad","#1b9671","#2f682c"];
+dataMarker = 'o';
+colors = ["#2676ad", "#4f4cc4", "#2f682c"];
 
-markerSize = 20;
+markerSize = 70;
+markerEdgeColor = [0 0 0];
+markerLineWidth = 0.5;
+markerFaceAlpha = 0.75;
+fitLineWidth = 1.5;
+theoryLineWidth = 1.5;
+axisLabelFontSize = 30;
+tickLabelFontSize = 18;
+legendFontSize = 14;
+textFontName = 'Helvetica';
+labelFont = ['\fontname{' textFontName '}'];
+xTickValues = 10.^(0:4);
+xTickLabels = arrayfun(@(x) sprintf('10^{%d}', x), 0:4, 'UniformOutput', false);
 
-figure(1); clf; hold on
-figure(2); clf; hold on
-figure(3); clf; hold on
-figure(4); clf; hold on
+figure(1); hold on
+figure(3); hold on
 
 for i = 1:length(files)
 
@@ -107,62 +122,35 @@ for i = 1:length(files)
     lFit = lFit(idx);
     hTheory = hTheory(idx);
     lTheory = lTheory(idx);
-
     % h versus N
     figure(1)
 
-    plot(Nuse, hFit, ...
-        'Marker', markers{i}, ...
-        'Color', colors(i), ...
-        'LineWidth', 1.5, ...
-        'MarkerSize', markerSize)
+    scatter(Nuse, hFit, markerSize, ...
+        'Marker', dataMarker, ...
+        'MarkerEdgeColor', markerEdgeColor, ...
+        'MarkerFaceColor', colors(i), ...
+        'MarkerFaceAlpha', markerFaceAlpha, ...
+        'LineWidth', markerLineWidth)
 
     plot(Nuse, hTheory, ...
         'Marker', 'none', ...
         'Color', colors(i), ...
-        'LineWidth', 1.5, ...
-        'MarkerSize', markerSize*0.7)
-
-    figure(2)
-
-    plot(muse, lFit, ...
-        'Marker', markers{i}, ...
-        'Color', colors(i), ...
-        'LineWidth', 1.5, ...
-        'MarkerSize', markerSize)
-
-    plot(muse, lTheory, ...
-        'Marker', '*', ...
-        'Color', colors(i), ...
-        'LineWidth', 1.5, ...
+        'LineWidth', theoryLineWidth, ...
         'MarkerSize', markerSize*0.7)
 
     figure(3)
 
-    plot(Nuse, lFit, ...
-        'Marker', markers{i}, ...
-        'Color', colors(i), ...
-        'LineWidth', 1.5, ...
-        'MarkerSize', markerSize)
+    scatter(Nuse, lFit, markerSize, ...
+        'Marker', dataMarker, ...
+        'MarkerEdgeColor', markerEdgeColor, ...
+        'MarkerFaceColor', colors(i), ...
+        'MarkerFaceAlpha', markerFaceAlpha, ...
+        'LineWidth', markerLineWidth)
 
     plot(Nuse, lTheory, ...
         'Marker', 'none', ...
         'Color', colors(i), ...
-        'LineWidth', 1.5, ...
-        'MarkerSize', markerSize*0.7)
-
-    figure(4)
-
-    plot(chiuse, lFit, ...
-        'Marker', markers{i}, ...
-        'Color', colors(i), ...
-        'LineWidth', 1.5, ...
-        'MarkerSize', markerSize)
-
-    plot(chiuse, lTheory, ...
-        'Marker', '*', ...
-        'Color', colors(i), ...
-        'LineWidth', 1.5, ...
+        'LineWidth', theoryLineWidth, ...
         'MarkerSize', markerSize*0.7)
 
 end
@@ -170,66 +158,42 @@ end
 % Format h versus N
 figure(1)
 set(gca, 'XScale', 'log')
-xlabel('N', 'FontSize', 18)
-ylabel('h', 'FontSize', 18)
+xlabel([labelFont 'Number of neurons {\itN}'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
+ylabel([labelFont 'External field {\ith}'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
 axis square
 box on
 ax = gca;
-
-ax.FontSize = 20;      % tick labels
+ax.FontName = textFontName;
+ax.FontSize = tickLabelFontSize;
+ax.XTick = xTickValues;
+ax.XTickLabel = xTickLabels;
+ax.TickLabelInterpreter = 'tex';
 set(gca, 'TickDir', 'both')
 
 yscale log
 
-legend({'Mouse Brain', 'Theory', ...
-        'Mouse Hippocampus', 'Theory', ...
-        'Mouse Visual Cortex', 'Theory'}, ...
-        'FontSize', 12, 'Location', 'best')
-
-figure(2)
-xlabel('\mu(N)', 'FontSize', 18)
-ylabel('\lambda', 'FontSize', 18)
-axis square
-box on
-
-ax = gca;
-
-ax.FontSize = 20;      % tick labels
-set(gca, 'TickDir', 'both')
-
-yscale log
 
 figure(3)
-xlabel('N', 'FontSize', 18)
-ylabel('\lambda', 'FontSize', 18)
+xlabel([labelFont 'Number of neurons {\itN}'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
+ylabel([labelFont 'Interaction strength {\itJ}'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
 axis square
 box on
-ax = gca;
-
-ax.FontSize = 20;      % tick labels
-set(gca, 'TickDir', 'both')
-
 %yscale log
 xscale log
+ax = gca;
+ax.FontName = textFontName;
+ax.FontSize = tickLabelFontSize;
+ax.XTick = xTickValues;
+ax.XTickLabel = xTickLabels;
+ax.TickLabelInterpreter = 'tex';
+set(gca, 'TickDir', 'both')
+
 ylim([0,2.5])
-
-legend({'Mouse Brain', 'Theory', ...
-        'Mouse Hippocampus', 'Theory', ...
-        'Mouse Visual Cortex', 'Theory'}, ...
-        'FontSize', 12, 'Location', 'best')
-
-figure(4)
-xlabel('\chi(N)', 'FontSize', 18)
-ylabel('\lambda', 'FontSize', 18)
-ax = gca;
-ylim([0.1,2.5])
-
-ax.FontSize = 20;      % tick labels
-set(gca, 'TickDir', 'both')
-
-axis square
-box on
-
-%yscale log
-xscale log
-
