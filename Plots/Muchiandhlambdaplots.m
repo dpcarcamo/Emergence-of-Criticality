@@ -24,7 +24,7 @@ markerLineWidth = 0.5;
 markerFaceAlpha = 0.75;
 fullMarkerSizeRange = [85 240];
 fullNRange = fullDataNRange(files);
-axisLabelFontSize = 30;
+axisLabelFontSize = 32;
 tickLabelFontSize = 18;
 textFontName = 'Helvetica';
 labelFont = ['\fontname{' textFontName '}'];
@@ -36,17 +36,37 @@ statisticsYLim = [0.05, 70];
 upperBoundShadeColor = [1, 0, 0];
 upperBoundShadeAlpha = 0.15;
 upperBoundLineWidth = 2;
+plotFullDataPanelsTogether = true;
 plotNGridFigure = true;
 gridNValues = [20 100 1000];
+figure4MarkerSizes = [45 75 120];
+plotMarkerSizeLegends = true;
+fullDataLegendNValues = [1000 10000];
+figure4LegendNValues = [20 100 1000];
+legendMarkerFaceColor = [0.55 0.55 0.55];
+markerLegendFontSize = 18;
 
 % -1 denotes the final/full data point.
 figureSets = {[-1]};
 %figureSets = {[20 100 1000 -1]};
 
+if plotFullDataPanelsTogether
+    fullDataPanelFigure = figure('Name', 'Full data statistics and model panels', ...
+        'Color', 'w');
+    fullDataPanelLayout = tiledlayout(1, 2, ...
+        'TileSpacing', 'compact', ...
+        'Padding', 'compact');
+end
+
 %% Plot mu and chi from data
 
 for f = 1:length(figureSets)
-    figure
+    if plotFullDataPanelsTogether
+        figure(fullDataPanelFigure)
+        nexttile(fullDataPanelLayout, 1)
+    else
+        figure
+    end
     hold on
 
     currentSet = figureSets{f};
@@ -57,7 +77,7 @@ for f = 1:length(figureSets)
         [Nss, mus, chis] = summarizeData(Data);
 
         baseColor = hex2rgb(colors(i));
-        [c20, c100, c1000, cFull] = dataAmountColors(baseColor);
+        [~, ~, ~, cFull] = dataAmountColors(baseColor);
         dim = datasetSearchDim(i);
 
         for val = currentSet
@@ -83,11 +103,11 @@ for f = 1:length(figureSets)
                 continue
             else
                 [~, I] = min(abs(Nss - val), [], dim, "linear");
-                pointColor = colorForN(val, c20, c100, c1000, cFull);
-                scatter(mus(I), chis(I), markerSize, ...
+                pointMarkerSize = markerSizeForN(val, gridNValues, figure4MarkerSizes);
+                scatter(mus(I), chis(I), pointMarkerSize, ...
                     'Marker', dataMarker, ...
                     'MarkerEdgeColor', markerEdgeColor, ...
-                    'MarkerFaceColor', pointColor, ...
+                    'MarkerFaceColor', cFull, ...
                     'MarkerFaceAlpha', markerFaceAlpha, ...
                     'LineWidth', markerLineWidth)
             end
@@ -173,7 +193,12 @@ box on
 %% Plot h and lambda from data
 
 for f = 1:length(figureSets)
-    figure
+    if plotFullDataPanelsTogether
+        figure(fullDataPanelFigure)
+        nexttile(fullDataPanelLayout, 2)
+    else
+        figure
+    end
     hold on
 
     plot(hZeroPlot + 0 * linspace(1, modelYLim(2)), ...
@@ -188,7 +213,7 @@ for f = 1:length(figureSets)
         [Nss, ~, ~] = summarizeData(Data);
 
         baseColor = hex2rgb(colors(i));
-        [c20, c100, c1000, cFull] = dataAmountColors(baseColor);
+        [~, ~, ~, cFull] = dataAmountColors(baseColor);
         dim = datasetSearchDim(i);
 
         for val = currentSet
@@ -214,11 +239,11 @@ for f = 1:length(figureSets)
                 continue
             else
                 [~, I] = min(abs(Nss - val), [], dim, "linear");
-                pointColor = colorForN(val, c20, c100, c1000, cFull);
-                scatter(hs(I), ls(I), markerSize, ...
+                pointMarkerSize = markerSizeForN(val, gridNValues, figure4MarkerSizes);
+                scatter(hs(I), ls(I), pointMarkerSize, ...
                     'Marker', dataMarker, ...
                     'MarkerEdgeColor', markerEdgeColor, ...
-                    'MarkerFaceColor', pointColor, ...
+                    'MarkerFaceColor', cFull, ...
                     'MarkerFaceAlpha', markerFaceAlpha, ...
                     'LineWidth', markerLineWidth)
             end
@@ -234,7 +259,7 @@ for f = 1:length(figureSets)
     xlabel([labelFont 'External field {\ith}'], ...
         'Interpreter', 'tex', ...
         'FontSize', axisLabelFontSize)
-    ylabel([labelFont 'Interaction strength {\itJ}'], ...
+    ylabel([labelFont 'Interaction strength \lambda'], ...
         'Interpreter', 'tex', ...
         'FontSize', axisLabelFontSize)
     xscale log
@@ -243,7 +268,8 @@ for f = 1:length(figureSets)
     xlim([-1, hZeroPlot])
     xticks([-1, -0.1, -0.01, -0.001, -0.0001, hZeroPlot])
     xticklabels({'-10^{0}', '-10^{-1}', '-10^{-2}', '-10^{-3}', ...
-        '-10^{-4}', '0'})
+        '-10^{-4}', '    0'})
+    xtickangle(0)
     ylim(modelYLim)
     ax = gca;
     ax.FontName = textFontName;
@@ -251,7 +277,7 @@ for f = 1:length(figureSets)
     ax.TickLabelInterpreter = 'tex';
 end
 
-%% Plot full data in h and J with a linear h axis (Inset) 
+%% Plot full data in h and lambda with a linear h axis (Inset) 
 
 figure
 hold on
@@ -288,7 +314,7 @@ ylim(modelYLim)
 xlabel([labelFont 'External field {\ith}'], ...
     'Interpreter', 'tex', ...
     'FontSize', axisLabelFontSize)
-ylabel([labelFont 'Interaction strength {\itJ}'], ...
+ylabel([labelFont 'Interaction strength \lambda'], ...
     'Interpreter', 'tex', ...
     'FontSize', axisLabelFontSize)
 box on
@@ -316,15 +342,15 @@ if plotNGridFigure
             [Nss, mus, chis] = summarizeData(Data);
 
             baseColor = hex2rgb(colors(i));
-            [c20, c100, c1000, cFull] = dataAmountColors(baseColor);
-            pointColor = colorForN(currentN, c20, c100, c1000, cFull);
+            [~, ~, ~, cFull] = dataAmountColors(baseColor);
+            pointMarkerSize = markerSizeForN(currentN, gridNValues, figure4MarkerSizes);
             dim = datasetSearchDim(i);
 
             [~, I] = min(abs(Nss - currentN), [], dim, "linear");
-            scatter(mus(I), chis(I), markerSize, ...
+            scatter(mus(I), chis(I), pointMarkerSize, ...
                 'Marker', dataMarker, ...
                 'MarkerEdgeColor', markerEdgeColor, ...
-                'MarkerFaceColor', pointColor, ...
+                'MarkerFaceColor', cFull, ...
                 'MarkerFaceAlpha', markerFaceAlpha, ...
                 'LineWidth', markerLineWidth)
         end
@@ -373,15 +399,15 @@ if plotNGridFigure
             [Nss, ~, ~] = summarizeData(Data);
 
             baseColor = hex2rgb(colors(i));
-            [c20, c100, c1000, cFull] = dataAmountColors(baseColor);
-            pointColor = colorForN(currentN, c20, c100, c1000, cFull);
+            [~, ~, ~, cFull] = dataAmountColors(baseColor);
+            pointMarkerSize = markerSizeForN(currentN, gridNValues, figure4MarkerSizes);
             dim = datasetSearchDim(i);
 
             [~, I] = min(abs(Nss - currentN), [], dim, "linear");
-            scatter(hs(I), ls(I), markerSize, ...
+            scatter(hs(I), ls(I), pointMarkerSize, ...
                 'Marker', dataMarker, ...
                 'MarkerEdgeColor', markerEdgeColor, ...
-                'MarkerFaceColor', pointColor, ...
+                'MarkerFaceColor', cFull, ...
                 'MarkerFaceAlpha', markerFaceAlpha, ...
                 'LineWidth', markerLineWidth)
         end
@@ -396,7 +422,7 @@ if plotNGridFigure
             'Interpreter', 'tex', ...
             'FontSize', axisLabelFontSize)
         if gridIdx == 1
-            ylabel([labelFont 'Interaction strength {\itJ}'], ...
+            ylabel([labelFont 'Interaction strength \lambda'], ...
                 'Interpreter', 'tex', ...
                 'FontSize', axisLabelFontSize)
         else
@@ -408,13 +434,38 @@ if plotNGridFigure
         xlim([-1, hZeroPlot])
         xticks([-1, -0.1, -0.01, -0.001, -0.0001, hZeroPlot])
         xticklabels({'-10^{0}', '-10^{-1}', '-10^{-2}', '-10^{-3}', ...
-            '-10^{-4}', '0'})
+            '-10^{-4}', '    0'})
+        xtickangle(0)
         ylim(modelYLim)
         ax = gca;
         ax.FontName = textFontName;
         ax.FontSize = tickLabelFontSize;
         ax.TickLabelInterpreter = 'tex';
     end
+end
+
+%% Plot marker-size legends
+
+if plotMarkerSizeLegends
+    fullDataLegendMarkerSizes = markerSizeFromN( ...
+        fullDataLegendNValues, fullNRange, fullMarkerSizeRange);
+
+    plotMarkerSizeLegend( ...
+        'Full data marker-size legend', ...
+        fullDataLegendNValues, ...
+        fullDataLegendMarkerSizes, ...
+        dataMarker, markerEdgeColor, legendMarkerFaceColor, ...
+        markerLineWidth, markerFaceAlpha, textFontName, markerLegendFontSize);
+
+    figure4LegendMarkerSizes = markerSizeForN( ...
+        figure4LegendNValues, gridNValues, figure4MarkerSizes);
+
+    plotMarkerSizeLegend( ...
+        'Figure 4 marker-size legend', ...
+        figure4LegendNValues, ...
+        figure4LegendMarkerSizes, ...
+        dataMarker, markerEdgeColor, legendMarkerFaceColor, ...
+        markerLineWidth, markerFaceAlpha, textFontName, markerLegendFontSize);
 end
 
 function [Data, hs, ls] = loadDataFile(fileName)
@@ -474,6 +525,39 @@ function markerSizes = markerSizeFromN(Ns, nRange, sizeRange)
 
     scaledN = (Ns - nRange(1)) ./ diff(nRange);
     markerSizes = sizeRange(1) + scaledN .* diff(sizeRange);
+end
+
+function markerSizes = markerSizeForN(Ns, referenceNs, referenceSizes)
+    markerSizes = interp1(log10(referenceNs), referenceSizes, log10(Ns), ...
+        'linear', 'extrap');
+end
+
+function plotMarkerSizeLegend(figureName, nValues, markerSizes, dataMarker, markerEdgeColor, markerFaceColor, markerLineWidth, markerFaceAlpha, textFontName, fontSize)
+    figure('Name', figureName, 'Color', 'w')
+    hold on
+
+    x = 1:numel(nValues);
+    y = ones(size(x));
+
+    scatter(x, y, markerSizes, ...
+        'Marker', dataMarker, ...
+        'MarkerEdgeColor', markerEdgeColor, ...
+        'MarkerFaceColor', markerFaceColor, ...
+        'MarkerFaceAlpha', markerFaceAlpha, ...
+        'LineWidth', markerLineWidth)
+
+    for idx = 1:numel(nValues)
+        text(x(idx), 0.58, sprintf('N = %g', nValues(idx)), ...
+            'FontName', textFontName, ...
+            'FontSize', fontSize, ...
+            'HorizontalAlignment', 'center', ...
+            'VerticalAlignment', 'top')
+    end
+
+    xlim([0.4, numel(nValues) + 0.6])
+    ylim([0.3, 1.4])
+    axis off
+    set(gcf, 'Renderer', 'painters')
 end
 
 function c = colorForN(N, c20, c100, c1000, cFull)

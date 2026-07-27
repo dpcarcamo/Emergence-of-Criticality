@@ -26,10 +26,19 @@ addpath(strcat(newPath{1}, '\Stringer'))
 n = 20;          % system size for muChiExact2Spin
 r = 0.03;        % radius of each circle in (h,lambda) space
 numPts = 400;    % number of points along each circle boundary
-axisLabelFontSize = 36;
-tickLabelFontSize = 24;
+axisLabelFontSize = 34;
+tickLabelFontSize = 20;
 textFontName = 'Helvetica';
 labelFont = ['\fontname{' textFontName '}'];
+jColorValues = [
+    0.5020    0.1765    0.1765
+    0.7020         0         0
+    0.8941    0.2039         0
+    0.9725    0.5373         0
+    1.0000    0.6745    0.0667
+];
+hGreyColor = [0.65 0.65 0.65];
+hGreyStrength = 0.85;
 
 centers = [];
 
@@ -49,34 +58,24 @@ ls = centers(:,2);
 % Normalize h and lambda independently to [0,1]
 hNorm = (hs - min(hs)) / (max(hs) - min(hs));
 lNorm = (ls - min(ls)) / (max(ls) - min(ls));
-
-grayLight = [0.25 0.25 0.25];
-grayDark = [0.75 0.75 0.75];
-
-colorLight = [0.9    0    0];  % nice solid blue
-colorDark = [0.9    0.9    0.9];  % lighter blue
+jColorPositions = linspace(0, 1, size(jColorValues, 1));
 
 cols = zeros(size(centers,1),3);
 
 for k = 1:size(centers,1)
 
-    x = hNorm(k);   % left to right
-    y = lNorm(k);   % bottom to top
-
-    % bottom edge: gray ramp
-    bottomColor = (1-x)*grayDark + x*grayLight;
-
-    % top edge: colored ramp
-    topColor = (1-x)*colorDark + x*colorLight;
-
-    % interpolate vertically
-    cols(k,:) = (1-y)*bottomColor + y*topColor;
+    jColor = interp1(jColorPositions, jColorValues, lNorm(k), 'linear');
+    greyWeight = hGreyStrength * (1 - hNorm(k));
+    cols(k,:) = (1 - greyWeight) * jColor + greyWeight * hGreyColor;
 end
 
-figure;
+figure('Name', 'Jacobian cartoon panels', 'Color', 'w');
+tiledlayout(2, 2, ...
+    'TileSpacing', 'compact', ...
+    'Padding', 'compact');
 
 % --- Plot in (h, lambda) space ---
-subplot(1,2,1)
+nexttile(1)
 hold on
 %set(gca, 'TickDir', 'both')
 box on
@@ -96,7 +95,7 @@ end
 xlabel([labelFont 'External field {\ith}'], ...
     'Interpreter', 'tex', ...
     'FontSize', axisLabelFontSize)
-ylabel([labelFont 'Interaction strength {\itJ}'], ...
+ylabel([labelFont 'Interaction strength \lambda'], ...
     'Interpreter', 'tex', ...
     'FontSize', axisLabelFontSize)
 
@@ -112,7 +111,7 @@ ax.FontSize = tickLabelFontSize;      % tick labels
 ax.LineWidth = 1.5;
 
 % --- Plot mapped filled curves in (mu, chi) space ---
-subplot(1,2,2)
+nexttile(2)
 hold on
 %set(gca, 'TickDir', 'both')
 box on
@@ -163,7 +162,7 @@ set(gcf, 'Renderer', 'painters');
 showLabels = false;
 hs = linspace(-2,-0.001, 1000); 
 
-figure 
+nexttile(3)
 hold on
 for l = 0.2:0.25:1.95
 
@@ -175,17 +174,8 @@ for l = 0.2:0.25:1.95
 
     end
 
-    x = 1;   % left to right
-    y = (l - min(ls)) / (max(ls) - min(ls));   % bottom to top
-
-    % bottom edge: gray ramp
-    bottomColor = (1-x)*grayDark + x*grayLight;
-
-    % top edge: colored ramp
-    topColor = (1-x)*colorDark + x*colorLight;
-
-    % interpolate vertically
-    color = (1-y)*bottomColor + y*topColor;
+    y = (l - min(ls)) / (max(ls) - min(ls));
+    color = interp1(jColorPositions, jColorValues, y, 'linear');
 
     plot(hs, chis, color=color, LineWidth=2)
 
@@ -220,12 +210,13 @@ box on
 xlim([-1,-0.001])
 xticks([-1, -0.1, -0.01, -0.001])
 xticklabels({'-10^{0}', '-10^{-1}', '-10^{-2}', '-10^{-3}'})
+xtickangle(0)
 ax.TickLabelInterpreter = 'tex';
 %
 
 hs = linspace(-2,-0.001, 1000); 
 
-figure 
+nexttile(4)
 hold on
 for l = 0.2:0.25:1.95
 
@@ -237,17 +228,8 @@ for l = 0.2:0.25:1.95
 
     end
 
-    x = 1;   % left to right
-    y = (l - min(ls)) / (max(ls) - min(ls));   % bottom to top
-
-    % bottom edge: gray ramp
-    bottomColor = (1-x)*grayDark + x*grayLight;
-
-    % top edge: colored ramp
-    topColor = (1-x)*colorDark + x*colorLight;
-
-    % interpolate vertically
-    color = (1-y)*bottomColor + y*topColor;
+    y = (l - min(ls)) / (max(ls) - min(ls));
+    color = interp1(jColorPositions, jColorValues, y, 'linear');
 
     plot(hs, Jacs, color=color, LineWidth=2)
 
@@ -283,3 +265,4 @@ xscale log
 xlim([-1,-0.001])
 xticks([-1, -0.1, -0.01, -0.001])
 xticklabels({'-10^{0}', '-10^{-1}', '-10^{-2}', '-10^{-3}'})
+xtickangle(0)

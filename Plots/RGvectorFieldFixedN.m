@@ -45,8 +45,11 @@ cacheFile = fullfile(plotsDir, 'RGvectorFieldFixedN_cache.mat');
 cacheVersion = 1;
 
 colors = [
-    [0.25 0.25 0.25]
-    [0.9 0 0]
+    0.5020    0.1765    0.1765
+    0.7020         0         0
+    0.8941    0.2039         0
+    0.9725    0.5373         0
+    1.0000    0.6745    0.0667
 ];
 cmap = interpolateColors(colors, 256);
 
@@ -133,7 +136,7 @@ for idx = 1:numel(NValues)
         'Interpreter', 'tex', ...
         'FontSize', axisLabelFontSize)
     if plotPanelsSeparately || idx == 1
-        ylabel([labelFont 'Interaction strength {\itJ}'], ...
+        ylabel([labelFont 'Interaction strength \lambda'], ...
             'Interpreter', 'tex', ...
             'FontSize', axisLabelFontSize)
     else
