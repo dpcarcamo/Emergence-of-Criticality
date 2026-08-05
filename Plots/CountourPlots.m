@@ -84,7 +84,7 @@ plotContourSet( ...
     labelFont, textFontName, axisLabelFontSize, tickLabelFontSize, ...
     plotPanelsSeparately, criticalHPlot, criticalLineWidth, criticalPointSize, criticalColor);
 plotStandaloneLogColorbar(cmap, [-9 6], ...
-    'Jacobian determinant', textFontName, tickLabelFontSize+4);
+    'Jacobian |{\bfJ}|', textFontName, tickLabelFontSize+4);
 
 function plotContourSet(F, h_vals, lambda_vals, plot_lambda_vals, Ns, cmap, c_limits, plot_title, labelFont, textFontName, axisLabelFontSize, tickLabelFontSize, plotPanelsSeparately, criticalHPlot, criticalLineWidth, criticalPointSize, criticalColor)
     if ~plotPanelsSeparately
@@ -155,6 +155,7 @@ function plotStandaloneLogColorbar(cmap, c_limits, colorbarLabel, textFontName, 
     cb.Label.String = colorbarLabel;
     cb.Label.FontSize = tickLabelFontSize;
     cb.Label.FontName = textFontName;
+    cb.Label.Interpreter = 'tex';
 
     formatLogColorbar(cb, c_limits, textFontName, tickLabelFontSize)
 end
