@@ -168,8 +168,9 @@ for a = 1:length(Ns)
             'LineWidth', edgeWidth);
     end
 
-    plot([0, 0], [1, 3], 'r', 'LineWidth', 2)
-    scatter(0, 1, 85, 'r', 'filled')
+    % Critical Line
+    plot([0, 0], [1, 3], 'r', 'LineWidth', 3)
+    scatter(0, 1, 105, 'r', 'filled')
 
     xlabel([labelFont 'External field {\ith}'], ...
         'Interpreter', 'tex', ...

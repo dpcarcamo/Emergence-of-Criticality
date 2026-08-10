@@ -26,8 +26,8 @@ textFontName = 'Helvetica';
 labelFont = ['\fontname{' textFontName '}'];
 plotPanelsSeparately = false;
 criticalHPlot = -0.0005;
-criticalLineWidth = 2;
-criticalPointSize = 85;
+criticalLineWidth = 3;
+criticalPointSize = 105;
 criticalColor = 'r';
 
 %% Grid

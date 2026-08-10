@@ -31,12 +31,12 @@ jacobianNValues = unique(round(logspace(log10(10), log10(1000), 120)));
 lambdaValues = -0.001:tileSideLength:3;
 hTileValues = -1 + tileSideLength/2:tileSideLength:-tileSideLength/2;
 jacobianLambdaValues = [0.2:0.5:3];
-axisLabelFontSize = 34;
-tickLabelFontSize = 20;
+axisLabelFontSize = 32;
+tickLabelFontSize = 18;
 textFontName = 'Helvetica';
 labelFont = ['\fontname{' textFontName '}'];
 jColorValues = [
-    0.5020/4    0.1765/4    0.1765/4
+    0.5765    0.5843    0.5961
     0.5020    0.1765    0.1765
     0.7020         0         0
     0.8941    0.2039         0
@@ -44,8 +44,7 @@ jColorValues = [
     1.0000    0.6745    0.0667
     1.0000    0.7745    0.1667
 ];
-hGreyColor = [0.65 0.65 0.65];
-hGreyStrength = 0.95;
+hSaturationFloor = 0.15;  % saturation at the most negative h values
 
 centers = [];
 
@@ -74,8 +73,10 @@ cols = zeros(size(centers,1),3);
 for k = 1:size(centers,1)
 
     jColor = interp1(jColorPositions, jColorValues, lNorm(k), 'linear');
-    greyWeight = hGreyStrength * (1 - hNorm(k));
-    cols(k,:) = (1 - greyWeight) * jColor + greyWeight * hGreyColor;
+    hsvColor = rgb2hsv(jColor);
+    saturationScale = hSaturationFloor + (1 - hSaturationFloor) * hNorm(k);
+    hsvColor(2) = hsvColor(2) * saturationScale;
+    cols(k,:) = hsv2rgb(hsvColor);
 end
 
 figure('Name', 'Jacobian cartoon panels', 'Color', 'w');
@@ -143,10 +144,17 @@ for l = jacobianLambdaValues
     y = (l - min(centerLambdas)) / (max(centerLambdas) - min(centerLambdas));
     color = interp1(jColorPositions, jColorValues, y, 'linear');
 
-    plot(hs, Jacs, color=color, LineWidth=2)
+    plot(hs, Jacs, ...
+        color=color, ...
+        LineWidth=2, ...
+        DisplayName=sprintf('\\lambda = %.1f', l))
 
 end
 
+legend('Location', 'best', ...
+    'Interpreter', 'tex', ...
+    'FontName', textFontName, ...
+    'FontSize', tickLabelFontSize)
 
 xlabel([labelFont 'External field {\ith}'], ...
     'Interpreter', 'tex', ...
@@ -154,7 +162,7 @@ xlabel([labelFont 'External field {\ith}'], ...
 ylabel([labelFont 'Jacobian |{\bfJ}|'], ...
     'Interpreter', 'tex', ...
     'FontSize', axisLabelFontSize)
-%yscale log
+yscale log
 
 axis square
 ax = gca;

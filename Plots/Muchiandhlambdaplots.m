@@ -324,7 +324,7 @@ ax.FontName = textFontName;
 ax.FontSize = tickLabelFontSize;
 
 %% Plot N grid in statistics space and model space
-
+hZeroPlot = hZeroPlot*10;
 if plotNGridFigure
     figure('Name', 'Data grid for fixed N', 'Color', 'w')
     tiledlayout(2, length(gridNValues), ...
@@ -432,9 +432,8 @@ if plotNGridFigure
         box on
         set(gca, 'TickDir', 'both')
         xlim([-1, hZeroPlot])
-        xticks([-1, -0.1, -0.01, -0.001, -0.0001, hZeroPlot])
-        xticklabels({'-10^{0}', '-10^{-1}', '-10^{-2}', '-10^{-3}', ...
-            '-10^{-4}', '    0'})
+        xticks([-1, -0.1, -0.01, -0.001, hZeroPlot])
+        xticklabels({'-10^{0}', '-10^{-1}', '-10^{-2}', '-10^{-3}', '    0'})
         xtickangle(0)
         ylim(modelYLim)
         ax = gca;
