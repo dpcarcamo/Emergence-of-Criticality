@@ -52,7 +52,10 @@ for namenum = 1:length(listing)
     
     count = 1;
     keep = 1:num_nuerons;
-    for j = unique([round(logspace(log10(2),log10(num_nuerons/10), 40))  , round(logspace(log10(num_nuerons/10),log10(num_nuerons), 4))])
+    for j = unique([round(logspace(log10(2),log10(num_nuerons), 40)), [20, 100, 1000]])
+        if j > num_nuerons
+            continue
+        end
         i = count;
     
         centerspins = [];

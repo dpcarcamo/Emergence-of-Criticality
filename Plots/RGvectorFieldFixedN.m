@@ -20,6 +20,8 @@ NValues = [20 100 1000];
 
 hlim = [-0.9 -0.001];
 lambdalim = [0.001 3];
+lambdaPlotLim = [0 3];
+lambdaTicks = 0:1:3;
 
 Nh = 15;
 Nlambda = 15;
@@ -31,7 +33,7 @@ arrowHeadBaseLength = 0.018;
 arrowHeadBaseWidth = 0.014;
 plotPanelsSeparately = false;
 logMagnitudeReference = 0;
-logMagnitudeFloor = -8;
+logMagnitudeFloor = -5;
 axisLabelFontSize = 30;
 tickLabelFontSize = 26;
 colorbarFontSize = 30;
@@ -45,11 +47,11 @@ cacheFile = fullfile(plotsDir, 'RGvectorFieldFixedN_cache.mat');
 cacheVersion = 1;
 
 colors = [
-    0.5020    0.1765    0.1765
-    0.7020         0         0
-    0.8941    0.2039         0
-    0.9725    0.5373         0
-    1.0000    0.6745    0.0667
+    1.0000    1.0000    1.0000
+    0.8800    0.8400    1.0000
+    0.4500    0.5200    1.0000
+    0.0400    0.1500    0.6500
+         0         0         0
 ];
 cmap = interpolateColors(colors, 256);
 
@@ -100,8 +102,8 @@ end
 for idx = 1:numel(NValues)
     N = NValues(idx);
 
-    dhdN = dhdNFields(:, :, idx);
-    dlambdadN = dlambdadNFields(:, :, idx);
+    dhdN = N*dhdNFields(:, :, idx);
+    dlambdadN = N*dlambdadNFields(:, :, idx);
 
     plotDh = dhdN./(abs(hGrid)*log(10));
     plotDlambda = dlambdadN;
@@ -128,9 +130,11 @@ for idx = 1:numel(NValues)
         'ArrowHeadBaseWidth', arrowHeadBaseWidth);
 
     xlim([0, xPlotMax])
-    ylim(lambdalim)
+    ylim(lambdaPlotLim)
     xticks([0 1 2 3 criticalXPlot])
     xticklabels({'10^0', '10^{-1}', '10^{-2}', '10^{-3}', '0'})
+    yticks(lambdaTicks)
+    yticklabels(arrayfun(@num2str, lambdaTicks, 'UniformOutput', false))
 
     xlabel([labelFont 'External field {\ith}'], ...
         'Interpreter', 'tex', ...
@@ -154,7 +158,7 @@ for idx = 1:numel(NValues)
     axis square
 
     hold on
-    plot([criticalXPlot, criticalXPlot], [1, lambdalim(2)], ...
+    plot([criticalXPlot, criticalXPlot], [1, lambdaPlotLim(2)], ...
         'Color', criticalColor, ...
         'LineWidth', criticalLineWidth, ...
         'Clipping', 'off')
@@ -166,7 +170,7 @@ end
 
 colormap(gcf, cmap)
 plotStandaloneLogColorbar(cmap, [logMagnitudeFloor logMagnitudeReference], ...
-    'Vector magnitude', colorbarFontSize);
+    'Flow magnitude', colorbarFontSize);
 
 %% Local functions
 

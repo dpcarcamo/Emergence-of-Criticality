@@ -43,7 +43,7 @@ distanceSMetric =  squareform(pdist(pos));
 count = 1;
 Data = zeros(3,numnuerons,38);
 keep = 1:num_nuerons;
-for j = unique([round(logspace(log10(2),log10(numnuerons), 40)) ])
+for j = unique([round(logspace(log10(2),log10(numnuerons), 40)), [20, 100, 1000] ])
     i = count;
 
     centerspins = [];

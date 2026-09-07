@@ -1,0 +1,6 @@
+# Track only MATLAB source files for now.
+*
+!*/
+!*.m
+!.gitignore
+Plots/JacobianCartoonBottomRowWindow.m

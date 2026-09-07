@@ -452,7 +452,7 @@ xline(1, 'r-', '\alpha = 1', 'LineWidth', 1.2, ...
 
 xlabel('\alpha');
 ylabel('S(\alpha)/N');
-title('Entropy at fixed mean activity');
+title('Entropy at fixed activity');
 %legend('Location', 'best');
 grid on;
 box on;
@@ -474,12 +474,12 @@ xline(1, 'r-', '\alpha = 1', 'LineWidth', 1.2, ...
 
 xlabel('\alpha');
 ylabel('C(\alpha)/N');
-title('Heat capacity at fixed mean activity');
+title('Heat capacity at fixed activity');
 %legend('Location', 'best');
 grid on;
 box on;
 axis square
-sgtitle('Curie-Weiss analogue of changing correlations at fixed mean');
+sgtitle('Curie-Weiss analogue of changing correlations at fixed activity');
 
 %% ---------------- FIGURE 3: TARGETS IN MU-CHI SPACE ----------------
 

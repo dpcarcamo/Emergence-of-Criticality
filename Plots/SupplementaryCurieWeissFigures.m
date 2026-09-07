@@ -117,7 +117,7 @@ ylabel('Specific heat C(T)/N')
 formatSupplementAxis(gca, textFontName, tickLabelFontSize, ...
     axisLabelFontSize, titleFontSize)
 
-%% Specific heat at fixed mean activity
+%% Specific heat at fixed activity
 
 nexttile(2)
 hold on
@@ -171,7 +171,7 @@ xline(1, 'r-', 'T = 1', ...
 xlabel('Dummy temperature T')
 
 if cwPlotAbsJacobian
-    ylabel('|Jac|')
+    ylabel('|J|')
 else
     ylabel('Jac')
 end
@@ -180,7 +180,7 @@ formatSupplementAxis(gca, textFontName, tickLabelFontSize, ...
     axisLabelFontSize, titleFontSize)
 yscale log
 
-%% Jacobian at fixed mean activity
+%% Jacobian at fixed activity
 
 nexttile(4)
 hold on
@@ -213,7 +213,7 @@ xline(1, 'r-', '\alpha = 1', ...
 xlabel('Correlation scale \alpha')
 
 if cwPlotAbsJacobian
-    ylabel('|Jac|')
+    ylabel('|J|')
 else
     ylabel('Jac')
 end

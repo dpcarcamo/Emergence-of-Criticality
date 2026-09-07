@@ -1,10 +1,10 @@
 %% KEEP PLOTS
 
-% Standalone script for the six-panel Figure 5 layout.
-% The top row contains the mean-field statistics region, neural data in
-% statistics space, and two free-energy panels. The bottom row compares
-% exact inferred parameters with the double-well approximation for all
-% available populations in each dataset.
+% Standalone script for the Figure 5 layout. The top row contains the
+% full-data statistics panel and the inferred free-energy panel. The bottom
+% left region contains the exact and double-well parameter curves. The bottom
+% right panel shows double-well parameter trajectories for fixed full-data
+% statistics.
 
 clear
 clc
@@ -18,59 +18,100 @@ addpath(fullfile(repoRoot, 'Stringer'))
 
 %% Figure settings
 
-files = ["Allenhldata.mat", "stringerhldata.mat", "hippomuchidata.mat"];
+files = ["Allenhldata.mat", "stringerhldata2.mat", "hippomuchidata.mat"];
 datasetNames = ["Allen", "Stringer", "Hippocampus"];
 datasetColors = ["#2676ad", "#2f682c", "#4f4cc4"];
 
 textFontName = 'Helvetica';
 labelFont = ['\fontname{' textFontName '}'];
 axisLabelFontSize = 22;
-subAxisLabelFontSize = 18;
+subAxisLabelFontSize = 16;
 tickLabelFontSize = 14;
 legendFontSize = 12;
 
-referenceLineColor = "#939598";
-markerSize = 55;
+referenceLineColor = "#414042";
+markerSize = 130;
 markerEdgeColor = [0 0 0];
-markerLineWidth = 0.5;
-markerFaceAlpha = 0.75;
+markerLineWidth = 0.7;
+markerFaceAlpha = 0.55;
 fullMarkerSizeRange = [85 240];
+fullDataMarkerSizeScale = 1.15;
+nLegendValues = [1000 10000];
 statisticsXLim = [-1, -0.8];
 statisticsYLim = [0.05, 70];
 upperBoundShadeColor = [1, 0, 0];
 upperBoundShadeAlpha = 0.15;
-upperBoundLineWidth = 2;
+upperBoundLineWidth = 2.6;
+criticalLabelColor = [0 0 0];
 
 freeEnergyNs = [20, 50, 100, 200, 1000];
 freeEnergyColors = ["#f9cd6b", "#edb34f", "#c2591c", "#ba340d", "#b41a02"];
 freeEnergyInfinityColor = [0 0 0];
-freeEnergyLineWidth = 1.4;
-freeEnergyMu = -0.962;
-freeEnergyChi = 0.24;
-fixedParameterN = 1000;
+freeEnergyLineWidth = 3.3;
+% Statistics used for the inferred free-energy panel.
+fixedStatisticsMu = -0.862;
+fixedStatisticsChi = 0.74;
 muGrid = linspace(-0.999, 0.999, 1000);
 
-theoryLineWidth = 1.5;
-infinityLineWidth = 1.0;
+theoryLineWidth = 3.5;
+infinityLineWidth = 3.3;
+plotExternalFieldLogY = true;
+panelCYLimits = [
+    -10, -1e-3
+    -10, -1e-4
+    -10, -1e-3
+];
+panelCYTicks = {
+    [-10, -1, -1e-1, -1e-2, -1e-3]
+    [-10, -1, -1e-1, -1e-2, -1e-3, -1e-4]
+    [-10, -1, -1e-1, -1e-2, -1e-3]
+};
+panelCYTickLabels = {
+    {'-10^{1}', '-10^{0}', '-10^{-1}', '-10^{-2}', '-10^{-3}'}
+    {'-10^{1}', '-10^{0}', '-10^{-1}', '-10^{-2}', '-10^{-3}', '-10^{-4}'}
+    {'-10^{1}', '-10^{0}', '-10^{-1}', '-10^{-2}', '-10^{-3}'}
+};
+panelDYLimits = [0, 2.5];
+panelDYTicks = 0:floor(panelDYLimits(2));
+parameterPopulationMode = "single";  % "single" or "all"
+% In "single" mode, entries are [Allen, Stringer, Hippocampus].
+% Use nan to randomly choose one population among those with the most valid N values.
+selectedPopulationByDataset = [nan, nan, nan];
+autoPopulationSelection = "randomMaxN";
 xTickValues = 10.^(0:4);
 xTickLabels = arrayfun(@(x) sprintf('10^{%d}', x), 0:4, 'UniformOutput', false);
 
-%% Figure 2 color scheme for parameter-space tiling
-
-tileSideLength = 0.05;
-numPtsPerSide = 20;
-lambdaValues = -0.001:tileSideLength:3;
-hTileValues = -1 + tileSideLength/2:tileSideLength:-tileSideLength/2;
-jColorValues = [
-    0.5765    0.5843    0.5961
-    0.5020    0.1765    0.1765
-    0.7020         0         0
-    0.8941    0.2039         0
-    0.9725    0.5373         0
-    1.0000    0.6745    0.0667
-    1.0000    0.7745    0.1667
-];
-hSaturationFloor = 0.15;
+trajectoryNMin = 1e2;
+trajectoryNMax = 1e6;
+trajectoryNCount = 50;
+trajectoryNValues = unique(round(logspace(log10(trajectoryNMin), ...
+    log10(trajectoryNMax), trajectoryNCount)));
+trajectoryLineWidth = theoryLineWidth;
+trajectoryLowNLightenAmount = 0.60;
+trajectoryColorMidpoint = 0.55;
+trajectoryHighNColor = [0.02 0.02 0.02];
+trajectoryNLegendLineWidth = 4;
+trajectoryLegendSegmentCount = 32;
+trajectoryLegendX = -10.^linspace(-1.35, -2.85, trajectoryLegendSegmentCount + 1);
+trajectoryLegendY = [2.73, 2.52, 2.31];
+trajectoryReferenceLineColor = "#939598";
+trajectoryHZeroPlot = -10^-6.5;
+trajectoryHXLim = [-0.1, trajectoryHZeroPlot];
+trajectoryHTickExponents = -1:-1:-6;
+trajectoryHTickValues = [-10.^trajectoryHTickExponents, trajectoryHZeroPlot];
+trajectoryHTickLabels = arrayfun(@(x) sprintf('-10^{%d}', x), ...
+    trajectoryHTickExponents, 'UniformOutput', false);
+trajectoryHTickLabels{end + 1} = '    0';
+linearTrajectoryHXLim = [-0.05, 0];
+linearTrajectoryHTicks = -0.05:0.01:0;
+trajectoryLambdaYLim = [0, 3];
+linearTrajectoryLambdaYLim = [0, trajectoryLambdaYLim(2)];
+trajectoryLambdaTicks = 0:1:3;
+trajectoryCriticalLineWidth = 2;
+trajectoryCriticalPointSize = 85;
+combinedParameterAxisLabelFontSize = 28;
+combinedParameterTickLabelFontSize = 22;
+combinedParameterMarkerSize = 260;
 
 %% Cached computed data
 
@@ -85,12 +126,9 @@ cacheSettings.datasetColors = datasetColors;
 cacheSettings.statisticsXLim = statisticsXLim;
 cacheSettings.statisticsYLim = statisticsYLim;
 cacheSettings.fullMarkerSizeRange = fullMarkerSizeRange;
-cacheSettings.tileSideLength = tileSideLength;
-cacheSettings.numPtsPerSide = numPtsPerSide;
-cacheSettings.lambdaValues = lambdaValues;
-cacheSettings.hTileValues = hTileValues;
-cacheSettings.jColorValues = jColorValues;
-cacheSettings.hSaturationFloor = hSaturationFloor;
+cacheSettings.parameterPopulationMode = parameterPopulationMode;
+cacheSettings.selectedPopulationByDataset = selectedPopulationByDataset;
+cacheSettings.autoPopulationSelection = autoPopulationSelection;
 
 fprintf('Figure 5: checking cached computed data.\n')
 useCache = false;
@@ -124,31 +162,22 @@ if ~useCache
         cacheData = struct();
     end
 
-    if ~isfield(cacheData, 'panelA')
-        fprintf('Figure 5: computing panel a mean-field tiles.\n')
-        cacheData.panelA = computePanelATileData( ...
-            hTileValues, lambdaValues, tileSideLength, numPtsPerSide, ...
-            jColorValues, hSaturationFloor);
-        saveFigure5Cache(cacheFile, cacheData, cacheSettings, cacheVersion, false)
-    else
-        fprintf('Figure 5: using cached panel a data.\n')
-    end
-
     if ~isfield(cacheData, 'panelB')
-        fprintf('Figure 5: computing panel b full-data points.\n')
+        fprintf('Figure 5: computing panel a full-data points.\n')
         cacheData.panelB = computePanelBData(files, datasetColors, fullMarkerSizeRange);
         saveFigure5Cache(cacheFile, cacheData, cacheSettings, cacheVersion, false)
     else
-        fprintf('Figure 5: using cached panel b data.\n')
+        fprintf('Figure 5: using cached panel a full-data points.\n')
     end
 
-    fprintf('Figure 5: computing panels e and f parameter curves.\n')
+    fprintf('Figure 5: computing panels c and d parameter curves.\n')
     if ~isfield(cacheData, 'parameterCurves')
         cacheData.parameterCurves = struct('datasetName', {}, 'populationCurves', {});
     end
 
     cacheData.parameterCurves = computeAllParameterCurveData( ...
         files, datasetNames, datasetColors, ...
+        parameterPopulationMode, selectedPopulationByDataset, ...
         cacheFile, cacheSettings, cacheVersion, cacheData);
 
     saveFigure5Cache(cacheFile, cacheData, cacheSettings, cacheVersion, true)
@@ -157,63 +186,67 @@ end
 
 %% Layout
 
-figure('Name', 'Figure 5 panels', ...
-    'Color', 'w', ...
-    'Position', [100 100 1500 1000])
+mainFigure = figure('Name', 'Figure 5 panels', ...
+    'Color', 'w');
 
-mainLayout = tiledlayout(4, 3, ...
-    'TileSpacing', 'compact', ...
-    'Padding', 'compact');
+panelAPosition = [0.08 0.56 0.34 0.34];
+panelBPosition = [0.56 0.56 0.34 0.34];
+panelEPosition = [0.56 0.10 0.34 0.34];
 
-%% a. Mean-field single-minimum statistics region
+parameterGridLeft = 0.10;
+parameterGridBottom = 0.10;
+parameterGridSize = 0.80;
+parameterGridColumnGap = 0.07;
+parameterGridRowGap = 0.055;
+parameterSubWidth = (parameterGridSize - parameterGridColumnGap) / 2;
+parameterSubHeight = (parameterGridSize - 2 * parameterGridRowGap) / 3;
+panelCPositions = zeros(length(files), 4);
+panelDPositions = zeros(length(files), 4);
 
-axA = nexttile(mainLayout, 1, [2 1]);
-hold(axA, 'on')
-fprintf('Figure 5: plotting panel a.\n')
-
-for k = 1:numel(cacheData.panelA.mTiles)
-    fill(axA, cacheData.panelA.mTiles{k}, cacheData.panelA.chiTiles{k}, ...
-        cacheData.panelA.tileColors(k, :), ...
-        'EdgeColor', 'none')
+for datasetIdx = 1:length(files)
+    rowBottom = parameterGridBottom ...
+        + (length(files) - datasetIdx) * (parameterSubHeight + parameterGridRowGap);
+    panelCPositions(datasetIdx, :) = [parameterGridLeft, rowBottom, ...
+        parameterSubWidth, parameterSubHeight];
+    panelDPositions(datasetIdx, :) = [parameterGridLeft + parameterSubWidth + parameterGridColumnGap, ...
+        rowBottom, parameterSubWidth, parameterSubHeight];
 end
 
-xlim(axA, statisticsXLim)
-ylim(axA, statisticsYLim)
-set(axA, 'YScale', 'log')
-xlabel(axA, [labelFont 'Average activity {\itm}'], ...
-    'Interpreter', 'tex', ...
-    'FontSize', axisLabelFontSize)
-ylabel(axA, [labelFont 'Susceptibility \chi'], ...
-    'Interpreter', 'tex', ...
-    'FontSize', axisLabelFontSize)
-formatSquareAxis(axA, textFontName, tickLabelFontSize)
+% Panel map:
+% a: full neural data relative to the critical region
+% b: inferred free energy for fixed statistics
+% c: inferred external field versus N
+% d: inferred interaction strength versus N
+% e: double-well parameter trajectories for fixed full-data statistics
+% Positions are [left bottom width height]. Panels a, b, and e are on the
+% main figure. The c/d block is plotted in a separate square figure.
 
-%% b. Full neural data relative to the single-minimum region
+%% a. Full neural data relative to the single-minimum region
 
-axB = nexttile(mainLayout, 2, [2 1]);
-hold(axB, 'on')
-fprintf('Figure 5: plotting panel b.\n')
+axA = axes('Parent', mainFigure, 'Position', panelAPosition);
+hold(axA, 'on')
+fprintf('Figure 5: plotting panel a.\n')
 
 x = linspace(statisticsXLim(1), statisticsXLim(2), 1000);
 independentBound = 1 - x.^2;
 upperBound = x .* (1 - x.^2) ./ (x - atanh(x) .* (1 - x.^2));
 validShade = isfinite(upperBound) & upperBound > 0 & upperBound < statisticsYLim(2);
 
-fill(axB, [x(validShade), fliplr(x(validShade))], ...
+fill(axA, [x(validShade), fliplr(x(validShade))], ...
     [upperBound(validShade), statisticsYLim(2) * ones(1, nnz(validShade))], ...
     upperBoundShadeColor, ...
     'FaceAlpha', upperBoundShadeAlpha, ...
     'EdgeColor', 'none')
-plot(axB, x, independentBound, ...
-    'LineWidth', 2, ...
+plot(axA, x, independentBound, ...
+    'LineWidth', upperBoundLineWidth, ...
     'Color', referenceLineColor)
-plot(axB, x(validShade), upperBound(validShade), ...
+plot(axA, x(validShade), upperBound(validShade), ...
     'LineWidth', upperBoundLineWidth, ...
     'Color', upperBoundShadeColor)
 
 for i = 1:numel(cacheData.panelB)
-    scatter(axB, cacheData.panelB(i).mus, cacheData.panelB(i).chis, ...
-        cacheData.panelB(i).markerSizes, ...
+    scatter(axA, cacheData.panelB(i).mus, cacheData.panelB(i).chis, ...
+        cacheData.panelB(i).markerSizes * fullDataMarkerSizeScale, ...
         'Marker', 'o', ...
         'MarkerEdgeColor', markerEdgeColor, ...
         'MarkerFaceColor', cacheData.panelB(i).color, ...
@@ -221,148 +254,648 @@ for i = 1:numel(cacheData.panelB)
         'LineWidth', markerLineWidth)
 end
 
-xlim(axB, statisticsXLim)
-ylim(axB, statisticsYLim)
-set(axB, 'YScale', 'log')
-xlabel(axB, [labelFont 'Average activity {\itm}'], ...
-    'Interpreter', 'tex', ...
-    'FontSize', axisLabelFontSize)
-ylabel(axB, [labelFont 'Susceptibility \chi'], ...
-    'Interpreter', 'tex', ...
-    'FontSize', axisLabelFontSize)
-formatSquareAxis(axB, textFontName, tickLabelFontSize)
+text(axA, -0.895, 25, 'Critical', ...
+    'Color', criticalLabelColor, ...
+    'FontName', textFontName, ...
+    'FontSize', legendFontSize, ...
+    'HorizontalAlignment', 'center')
 
-%% c-d. Free-energy panels in the top-right tile
-
-axC = nexttile(mainLayout, 3);
-hold(axC, 'on')
-fprintf('Figure 5: computing and plotting panel c.\n')
-
-[fixedH, fixedLambda] = hlambda(freeEnergyMu, freeEnergyChi, fixedParameterN);
-freeEnergyLabels = strings(1, numel(freeEnergyNs) + 1);
-
-for k = 1:numel(freeEnergyNs)
-    N = freeEnergyNs(k);
-
-    score = (N * fixedH * muGrid + N * fixedLambda * muGrid.^2 / 2 ...
-        + logGammaLanczos(N + 1) ...
-        - logGammaLanczos(N * (1 + muGrid) / 2 + 1) ...
-        - logGammaLanczos(N * (1 - muGrid) / 2 + 1)) / N;
-
-    y = normalizedFreeEnergy(score);
-
-    plot(axC, muGrid, y, ...
-        'Color', freeEnergyColors(k), ...
-        'LineWidth', freeEnergyLineWidth)
-
-    freeEnergyLabels(k) = sprintf('N = %d', N);
+fullNsForLegend = [];
+for i = 1:numel(cacheData.panelB)
+    if isfield(cacheData.panelB, 'fullNs')
+        fullNsForLegend = [fullNsForLegend, cacheData.panelB(i).fullNs]; %#ok<AGROW>
+    end
 end
 
-pPlus = (1 + muGrid) / 2;
-pMinus = (1 - muGrid) / 2;
-entropyTerm = pPlus .* log(pPlus) + pMinus .* log(pMinus);
-scoreInf = fixedLambda * muGrid.^2 / 2 + fixedH * muGrid - entropyTerm;
-yInf = normalizedFreeEnergy(scoreInf);
+fullNsForLegend = fullNsForLegend(isfinite(fullNsForLegend));
+if isempty(fullNsForLegend)
+    fullNRangeForLegend = fullDataNRange(files);
+else
+    fullNRangeForLegend = [min(fullNsForLegend), max(fullNsForLegend)];
+end
 
-plot(axC, muGrid, yInf, ...
-    'Color', freeEnergyInfinityColor, ...
-    'LineWidth', freeEnergyLineWidth)
-freeEnergyLabels(end) = 'N = \infty';
+nLegendHandles = gobjects(1, numel(nLegendValues));
+nLegendLabels = strings(1, numel(nLegendValues));
+for k = 1:numel(nLegendValues)
+    nLegendHandles(k) = scatter(axA, nan, nan, ...
+        markerSizeFromN(nLegendValues(k), fullNRangeForLegend, fullMarkerSizeRange) * fullDataMarkerSizeScale, ...
+        'Marker', 'o', ...
+        'MarkerEdgeColor', markerEdgeColor, ...
+        'MarkerFaceColor', [0.65 0.65 0.65], ...
+        'LineWidth', markerLineWidth);
+    nLegendLabels(k) = sprintf('N = %d', nLegendValues(k));
+end
 
-legend(axC, freeEnergyLabels, ...
+legend(axA, nLegendHandles, nLegendLabels, ...
     'Interpreter', 'tex', ...
     'FontName', textFontName, ...
-    'FontSize', 9, ...
-    'Location', 'best')
+    'FontSize', legendFontSize, ...
+    'Location', 'southwest')
 
-ylabel(axC, [labelFont 'Free energy {\itf}(\mu)'], ...
+xlim(axA, statisticsXLim)
+ylim(axA, statisticsYLim)
+set(axA, 'YScale', 'log')
+xlabel(axA, [labelFont 'Average activity {\itm}'], ...
     'Interpreter', 'tex', ...
-    'FontSize', subAxisLabelFontSize)
-formatSubAxis(axC, textFontName, tickLabelFontSize)
+    'FontSize', axisLabelFontSize)
+ylabel(axA, [labelFont 'Correlation \chi'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
+formatSquareAxis(axA, textFontName, tickLabelFontSize)
 
-axD = nexttile(mainLayout, 6);
-hold(axD, 'on')
-fprintf('Figure 5: computing and plotting panel d.\n')
+%% b. Inferred free energy at fixed statistics
+
+axB = axes('Parent', mainFigure, 'Position', panelBPosition);
+hold(axB, 'on')
+fprintf('Figure 5: computing and plotting panel b.\n')
 
 freeEnergyLabels = strings(1, numel(freeEnergyNs) + 1);
 
 for k = 1:numel(freeEnergyNs)
     N = freeEnergyNs(k);
-    [h, lambda] = hlambda(freeEnergyMu, freeEnergyChi, N);
+    [h, lambda] = hlambda(fixedStatisticsMu, fixedStatisticsChi, N);
 
     score = (N * h * muGrid + N * lambda * muGrid.^2 / 2 ...
         + logGammaLanczos(N + 1) ...
         - logGammaLanczos(N * (1 + muGrid) / 2 + 1) ...
         - logGammaLanczos(N * (1 - muGrid) / 2 + 1)) / N;
 
-    y = normalizedFreeEnergy(score);
+    peaks = findpeaks(score);
+    if ~isempty(peaks)
+        referenceValue = peaks(1);
+    else
+        referenceValue = max(score);
+    end
+    y = -(score - referenceValue);
 
-    plot(axD, muGrid, y, ...
+    plot(axB, muGrid, y, ...
         'Color', freeEnergyColors(k), ...
         'LineWidth', freeEnergyLineWidth)
 
     freeEnergyLabels(k) = sprintf('N = %d', N);
 end
 
-lambdaInf = atanh(abs(freeEnergyMu)) / max(abs(freeEnergyMu), eps);
+lambdaInf = atanh(abs(fixedStatisticsMu)) / max(abs(fixedStatisticsMu), eps);
 pPlus = (1 + muGrid) / 2;
 pMinus = (1 - muGrid) / 2;
 entropyTerm = pPlus .* log(pPlus) + pMinus .* log(pMinus);
 scoreInf = lambdaInf * muGrid.^2 / 2 - entropyTerm;
-yInf = normalizedFreeEnergy(scoreInf);
+peaks = findpeaks(scoreInf);
+if ~isempty(peaks)
+    referenceValue = peaks(1);
+else
+    referenceValue = max(scoreInf);
+end
+yInf = -(scoreInf - referenceValue);
 
-plot(axD, muGrid, yInf, ...
+plot(axB, muGrid, yInf, ...
     'Color', freeEnergyInfinityColor, ...
     'LineWidth', freeEnergyLineWidth)
 freeEnergyLabels(end) = 'N = \infty';
 
-legend(axD, freeEnergyLabels, ...
+legend(axB, freeEnergyLabels, ...
     'Interpreter', 'tex', ...
     'FontName', textFontName, ...
     'FontSize', 9, ...
     'Location', 'best')
 
-xlabel(axD, [labelFont 'Activity \mu'], ...
+xlabel(axB, [labelFont 'Activity \mu'], ...
     'Interpreter', 'tex', ...
     'FontSize', subAxisLabelFontSize)
-ylabel(axD, [labelFont 'Free energy {\itf}(\mu)'], ...
+ylabel(axB, [labelFont 'Free energy {\itf}(\mu)'], ...
     'Interpreter', 'tex', ...
     'FontSize', subAxisLabelFontSize)
-formatSubAxis(axD, textFontName, tickLabelFontSize)
+formatSubAxis(axB, textFontName, tickLabelFontSize)
+axis(axB, 'square')
 
-%% e-f. Exact inference and double-well approximation for all populations
+%% Separate c/d figure
+
+parameterFigure = figure('Name', 'Figure 5 panels c and d', ...
+    'Color', 'w');
+
+%% c. Exact inferred field and double-well approximation
 
 for datasetIdx = 1:length(files)
-    fprintf('Figure 5: plotting panels e/f for %s.\n', datasetNames(datasetIdx))
-    axH = nexttile(mainLayout, 6 + datasetIdx);
-    hold(axH, 'on')
+    fprintf('Figure 5: plotting panel c for %s.\n', datasetNames(datasetIdx))
+    axC = axes('Parent', parameterFigure, 'Position', panelCPositions(datasetIdx, :));
+    hold(axC, 'on')
 
-    axLambda = nexttile(mainLayout, 9 + datasetIdx);
-    hold(axLambda, 'on')
+    datasetCurveData = cacheData.parameterCurves(datasetIdx);
 
-    plotAllDatasetParameterCurves(axH, axLambda, cacheData.parameterCurves(datasetIdx), ...
-        markerSize, markerEdgeColor, markerLineWidth, markerFaceAlpha, ...
-        theoryLineWidth, infinityLineWidth)
+    if isfield(datasetCurveData, 'selectedPopulation') ...
+            && ~isempty(datasetCurveData.selectedPopulation) ...
+            && isfinite(datasetCurveData.selectedPopulation)
+        fprintf('  plotting population %d of %s.\n', ...
+            datasetCurveData.selectedPopulation, datasetNames(datasetIdx))
+    end
 
-    title(axH, datasetNames(datasetIdx), ...
-        'FontName', textFontName, ...
-        'FontSize', tickLabelFontSize)
+    for popIdx = 1:numel(datasetCurveData.populationCurves)
+        curve = datasetCurveData.populationCurves(popIdx);
+        popColor = curve.popColor;
 
-    ylabel(axH, [labelFont 'External field {\ith}'], ...
+        if isfield(curve, 'sourcePopulation') && ~isempty(curve.sourcePopulation)
+            fprintf('  panel c curve %d uses source population %d.\n', ...
+                popIdx, curve.sourcePopulation)
+        end
+
+        % Circles are exact inversions. Solid lines are the double-well approximation.
+        scatter(axC, curve.Nplot, curve.hFit, markerSize, ...
+            'Marker', 'o', ...
+            'MarkerEdgeColor', markerEdgeColor, ...
+            'MarkerFaceColor', popColor, ...
+            'MarkerFaceAlpha', markerFaceAlpha, ...
+            'LineWidth', markerLineWidth)
+        plot(axC, curve.Nplot, curve.hTheory, ...
+            'Color', popColor, ...
+            'LineWidth', theoryLineWidth)
+
+        if ~plotExternalFieldLogY
+            plot(axC, [min(curve.Nplot), max(curve.Nplot)], curve.hInfinity * [1, 1], ...
+                '--', ...
+                'Color', popColor, ...
+                'LineWidth', infinityLineWidth)
+        end
+    end
+
+    ylabel(axC, [labelFont 'External field {\ith}'], ...
         'Interpreter', 'tex', ...
         'FontSize', subAxisLabelFontSize)
-    ylabel(axLambda, [labelFont 'Interaction strength \lambda'], ...
-        'Interpreter', 'tex', ...
-        'FontSize', subAxisLabelFontSize)
-    xlabel(axLambda, [labelFont 'Number of neurons {\itN}'], ...
-        'Interpreter', 'tex', ...
-        'FontSize', subAxisLabelFontSize)
 
-    formatParameterAxis(axH, textFontName, tickLabelFontSize, xTickValues, xTickLabels)
-    formatParameterAxis(axLambda, textFontName, tickLabelFontSize, xTickValues, xTickLabels)
-    ylim(axLambda, [0, 2.5])
+    formatParameterAxis(axC, textFontName, tickLabelFontSize, xTickValues, xTickLabels)
+    if plotExternalFieldLogY
+        set(axC, 'YScale', 'log')
+        ylim(axC, panelCYLimits(datasetIdx, :))
+        yticks(axC, panelCYTicks{datasetIdx})
+        yticklabels(axC, panelCYTickLabels{datasetIdx})
+    end
+    setParameterAxisXLim(axC, cacheData.parameterCurves(datasetIdx))
+
+    if datasetIdx == length(files)
+        xlabel(axC, [labelFont 'Number of neurons {\itN}'], ...
+            'Interpreter', 'tex', ...
+            'FontSize', subAxisLabelFontSize)
+    end
 end
 
+%% d. Exact inferred interaction strength and double-well approximation
+
+for datasetIdx = 1:length(files)
+    fprintf('Figure 5: plotting panel d for %s.\n', datasetNames(datasetIdx))
+    axD = axes('Parent', parameterFigure, 'Position', panelDPositions(datasetIdx, :));
+    hold(axD, 'on')
+
+    datasetCurveData = cacheData.parameterCurves(datasetIdx);
+
+    for popIdx = 1:numel(datasetCurveData.populationCurves)
+        curve = datasetCurveData.populationCurves(popIdx);
+        popColor = curve.popColor;
+
+        if isfield(curve, 'sourcePopulation') && ~isempty(curve.sourcePopulation)
+            fprintf('  panel d curve %d uses source population %d.\n', ...
+                popIdx, curve.sourcePopulation)
+        end
+
+        % Circles are exact inversions. Solid and dashed lines show approximations.
+        scatter(axD, curve.Nplot, curve.lambdaFit, markerSize, ...
+            'Marker', 'o', ...
+            'MarkerEdgeColor', markerEdgeColor, ...
+            'MarkerFaceColor', popColor, ...
+            'MarkerFaceAlpha', markerFaceAlpha, ...
+            'LineWidth', markerLineWidth)
+        plot(axD, curve.Nplot, curve.lambdaTheory, ...
+            'Color', popColor, ...
+            'LineWidth', theoryLineWidth)
+        plot(axD, [min(curve.Nplot), max(curve.Nplot)], curve.lambdaInfinity * [1, 1], ...
+            '--', ...
+            'Color', popColor, ...
+            'LineWidth', infinityLineWidth)
+    end
+
+    if datasetIdx == 1
+        exactLegendHandle = scatter(axD, nan, nan, markerSize, ...
+            'Marker', 'o', ...
+            'MarkerEdgeColor', markerEdgeColor, ...
+            'MarkerFaceColor', [0.65 0.65 0.65], ...
+            'LineWidth', markerLineWidth);
+        doubleWellLegendHandle = plot(axD, nan, nan, ...
+            'k-', ...
+            'LineWidth', theoryLineWidth);
+        infinityLegendHandle = plot(axD, nan, nan, ...
+            'k--', ...
+            'LineWidth', infinityLineWidth);
+
+        legend(axD, [exactLegendHandle, doubleWellLegendHandle, infinityLegendHandle], ...
+            {'Exact', 'Double-well', 'N \rightarrow \infty'}, ...
+            'Interpreter', 'tex', ...
+            'FontName', textFontName, ...
+            'FontSize', legendFontSize, ...
+            'Location', 'best')
+    end
+
+    ylabel(axD, [labelFont 'Interaction strength \lambda'], ...
+        'Interpreter', 'tex', ...
+        'FontSize', subAxisLabelFontSize)
+
+    formatParameterAxis(axD, textFontName, tickLabelFontSize, xTickValues, xTickLabels)
+    setParameterAxisXLim(axD, cacheData.parameterCurves(datasetIdx))
+    ylim(axD, panelDYLimits)
+    yticks(axD, panelDYTicks)
+    yticklabels(axD, arrayfun(@num2str, panelDYTicks, 'UniformOutput', false))
+
+    if datasetIdx == length(files)
+        xlabel(axD, [labelFont 'Number of neurons {\itN}'], ...
+            'Interpreter', 'tex', ...
+            'FontSize', subAxisLabelFontSize)
+    end
+end
+
+set(parameterFigure, 'Renderer', 'painters')
+
+%% Separate combined c/d comparison figure
+
+combinedParameterFigure = figure('Name', 'Figure 5 combined panels c and d', ...
+    'Color', 'w');
+
+combinedCPosition = [0.13 0.57 0.78 0.34];
+combinedDPosition = [0.13 0.12 0.78 0.34];
+combinedCYLimits = [-10, -1e-4];
+combinedCYTicks = [-10, -1, -1e-1, -1e-2, -1e-3, -1e-4];
+combinedCYTickLabels = {'-10^{1}', '-10^{0}', '-10^{-1}', ...
+    '-10^{-2}', '-10^{-3}', '-10^{-4}'};
+combinedNValues = [];
+
+% Combined c panel: all external-field curves on one axis.
+axCCombined = axes('Parent', combinedParameterFigure, ...
+    'Position', combinedCPosition);
+hold(axCCombined, 'on')
+fprintf('Figure 5: plotting combined panel c.\n')
+
+for datasetIdx = 1:length(files)
+    datasetCurveData = cacheData.parameterCurves(datasetIdx);
+
+    for popIdx = 1:numel(datasetCurveData.populationCurves)
+        curve = datasetCurveData.populationCurves(popIdx);
+        popColor = curve.popColor;
+        combinedNValues = [combinedNValues; curve.Nplot(:)]; %#ok<AGROW>
+
+        scatter(axCCombined, curve.Nplot, curve.hFit, combinedParameterMarkerSize, ...
+            'Marker', 'o', ...
+            'MarkerEdgeColor', markerEdgeColor, ...
+            'MarkerFaceColor', popColor, ...
+            'MarkerFaceAlpha', markerFaceAlpha, ...
+            'LineWidth', markerLineWidth)
+        plot(axCCombined, curve.Nplot, curve.hTheory, ...
+            'Color', popColor, ...
+            'LineWidth', theoryLineWidth)
+
+        if ~plotExternalFieldLogY
+            plot(axCCombined, [min(curve.Nplot), max(curve.Nplot)], ...
+                curve.hInfinity * [1, 1], ...
+                '--', ...
+                'Color', popColor, ...
+                'LineWidth', infinityLineWidth)
+        end
+    end
+end
+
+ylabel(axCCombined, [labelFont 'External field {\ith}'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', combinedParameterAxisLabelFontSize)
+formatParameterAxis(axCCombined, textFontName, combinedParameterTickLabelFontSize, ...
+    xTickValues, xTickLabels)
+
+if plotExternalFieldLogY
+    set(axCCombined, 'YScale', 'log')
+    ylim(axCCombined, combinedCYLimits)
+    yticks(axCCombined, combinedCYTicks)
+    yticklabels(axCCombined, combinedCYTickLabels)
+end
+
+% Combined d panel: all interaction-strength curves on one axis.
+axDCombined = axes('Parent', combinedParameterFigure, ...
+    'Position', combinedDPosition);
+hold(axDCombined, 'on')
+fprintf('Figure 5: plotting combined panel d.\n')
+
+for datasetIdx = 1:length(files)
+    datasetCurveData = cacheData.parameterCurves(datasetIdx);
+
+    for popIdx = 1:numel(datasetCurveData.populationCurves)
+        curve = datasetCurveData.populationCurves(popIdx);
+        popColor = curve.popColor;
+
+        scatter(axDCombined, curve.Nplot, curve.lambdaFit, combinedParameterMarkerSize, ...
+            'Marker', 'o', ...
+            'MarkerEdgeColor', markerEdgeColor, ...
+            'MarkerFaceColor', popColor, ...
+            'MarkerFaceAlpha', markerFaceAlpha, ...
+            'LineWidth', markerLineWidth)
+        plot(axDCombined, curve.Nplot, curve.lambdaTheory, ...
+            'Color', popColor, ...
+            'LineWidth', theoryLineWidth)
+        plot(axDCombined, [min(curve.Nplot), max(curve.Nplot)], ...
+            curve.lambdaInfinity * [1, 1], ...
+            '--', ...
+            'Color', popColor, ...
+            'LineWidth', infinityLineWidth)
+    end
+end
+
+exactLegendHandle = scatter(axDCombined, nan, nan, combinedParameterMarkerSize, ...
+    'Marker', 'o', ...
+    'MarkerEdgeColor', markerEdgeColor, ...
+    'MarkerFaceColor', [0.65 0.65 0.65], ...
+    'LineWidth', markerLineWidth);
+doubleWellLegendHandle = plot(axDCombined, nan, nan, ...
+    'k-', ...
+    'LineWidth', theoryLineWidth);
+infinityLegendHandle = plot(axDCombined, nan, nan, ...
+    'k--', ...
+    'LineWidth', infinityLineWidth);
+
+legend(axDCombined, [exactLegendHandle, doubleWellLegendHandle, infinityLegendHandle], ...
+    {'Exact', 'Double-well', 'N \rightarrow \infty'}, ...
+    'Interpreter', 'tex', ...
+    'FontName', textFontName, ...
+    'FontSize', legendFontSize, ...
+    'Location', 'best')
+
+ylabel(axDCombined, [labelFont 'Interaction strength \lambda'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', combinedParameterAxisLabelFontSize)
+xlabel(axDCombined, [labelFont 'Number of neurons {\itN}'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', combinedParameterAxisLabelFontSize)
+formatParameterAxis(axDCombined, textFontName, combinedParameterTickLabelFontSize, ...
+    xTickValues, xTickLabels)
+ylim(axDCombined, panelDYLimits)
+yticks(axDCombined, panelDYTicks)
+yticklabels(axDCombined, arrayfun(@num2str, panelDYTicks, 'UniformOutput', false))
+
+combinedNValues = combinedNValues(isfinite(combinedNValues) & combinedNValues > 0);
+if ~isempty(combinedNValues)
+    xlim(axCCombined, [min(combinedNValues), max(combinedNValues)])
+    xlim(axDCombined, [min(combinedNValues), max(combinedNValues)])
+end
+
+set(combinedParameterFigure, 'Renderer', 'painters')
+
+%% e. Full-statistic double-well trajectories in h-lambda space
+
+axE = axes('Parent', mainFigure, 'Position', panelEPosition);
+hold(axE, 'on')
+fprintf('Figure 5: plotting panel e.\n')
+
+plot(axE, [trajectoryHZeroPlot, trajectoryHZeroPlot], ...
+    [1, trajectoryLambdaYLim(2)], ...
+    'r', ...
+    'LineWidth', trajectoryCriticalLineWidth)
+plot(axE, linspace(trajectoryHXLim(1), trajectoryHZeroPlot, 500), ...
+    zeros(1, 500), ...
+    'Color', trajectoryReferenceLineColor, ...
+    'LineWidth', 2)
+
+for datasetIdx = 1:length(files)
+    [Data, ~, ~] = loadDataFile(files(datasetIdx));
+    [~, mus, chis] = summarizeData(Data);
+
+    fullMus = lastofarray(mus);
+    fullChis = lastofarray(chis);
+
+    fullMus = fullMus(:).';
+    fullChis = fullChis(:).';
+
+    validTargets = isfinite(fullMus) ...
+        & isfinite(fullChis) ...
+        & fullMus < 0 ...
+        & abs(fullMus) < 1 ...
+        & fullChis > 0;
+
+    baseColor = hex2rgb(datasetColors(datasetIdx));
+    lowNColor = baseColor + (1 - baseColor) * trajectoryLowNLightenAmount;
+    highNColor = trajectoryHighNColor;
+
+    fprintf('  panel e: plotting %d full %s recordings.\n', ...
+        nnz(validTargets), char(datasetNames(datasetIdx)))
+
+    for popIdx = find(validTargets)
+        mTarget = fullMus(popIdx);
+        chiTarget = fullChis(popIdx);
+
+        u0 = sqrt(chiTarget ./ trajectoryNValues + mTarget.^2);
+        hTheory = nan(size(trajectoryNValues));
+        lambdaTheory = nan(size(trajectoryNValues));
+
+        goodTheory = isfinite(u0) ...
+            & u0 > 0 ...
+            & u0 < 1 ...
+            & abs(mTarget ./ u0) < 1;
+
+        lambdaTheory(goodTheory) = atanh(u0(goodTheory)) ./ u0(goodTheory);
+        hTheory(goodTheory) = atanh(mTarget ./ u0(goodTheory)) ...
+            ./ (trajectoryNValues(goodTheory) .* u0(goodTheory));
+
+        goodPlot = isfinite(hTheory) ...
+            & isfinite(lambdaTheory) ...
+            & hTheory < 0 ...
+            & lambdaTheory > 0;
+
+        for nIdx = 1:length(trajectoryNValues) - 1
+            if goodPlot(nIdx) && goodPlot(nIdx + 1)
+                colorWeight = (log10(mean(trajectoryNValues(nIdx:nIdx + 1))) ...
+                    - log10(trajectoryNMin)) ...
+                    / (log10(trajectoryNMax) - log10(trajectoryNMin));
+                colorWeight = max(0, min(1, colorWeight));
+
+                if colorWeight <= trajectoryColorMidpoint
+                    colorWeightLocal = colorWeight / trajectoryColorMidpoint;
+                    currentColor = (1 - colorWeightLocal) * lowNColor ...
+                        + colorWeightLocal * baseColor;
+                else
+                    colorWeightLocal = (colorWeight - trajectoryColorMidpoint) ...
+                        / (1 - trajectoryColorMidpoint);
+                    currentColor = (1 - colorWeightLocal) * baseColor ...
+                        + colorWeightLocal * highNColor;
+                end
+
+                plot(axE, hTheory(nIdx:nIdx + 1), ...
+                    lambdaTheory(nIdx:nIdx + 1), ...
+                    'Color', currentColor, ...
+                    'LineWidth', trajectoryLineWidth)
+            end
+        end
+    end
+
+end
+
+scatter(axE, trajectoryHZeroPlot, 1, trajectoryCriticalPointSize, ...
+    'Marker', 'o', ...
+    'MarkerFaceColor', 'r', ...
+    'MarkerEdgeColor', 'r')
+
+axis(axE, 'square')
+set(axE, 'XScale', 'log')
+xlim(axE, trajectoryHXLim)
+ylim(axE, trajectoryLambdaYLim)
+xticks(axE, trajectoryHTickValues)
+xticklabels(axE, trajectoryHTickLabels)
+xtickangle(axE, 0)
+yticks(axE, trajectoryLambdaTicks)
+yticklabels(axE, arrayfun(@num2str, trajectoryLambdaTicks, 'UniformOutput', false))
+
+xlabel(axE, [labelFont 'External field {\ith}'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
+ylabel(axE, [labelFont 'Interaction strength \lambda'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
+
+for datasetIdx = 1:length(files)
+    baseColor = hex2rgb(datasetColors(datasetIdx));
+    lowNColor = baseColor + (1 - baseColor) * trajectoryLowNLightenAmount;
+    highNColor = trajectoryHighNColor;
+
+    for segmentIdx = 1:trajectoryLegendSegmentCount
+        colorWeight = (segmentIdx - 0.5) / trajectoryLegendSegmentCount;
+
+        if colorWeight <= trajectoryColorMidpoint
+            colorWeightLocal = colorWeight / trajectoryColorMidpoint;
+            legendColor = (1 - colorWeightLocal) * lowNColor ...
+                + colorWeightLocal * baseColor;
+        else
+            colorWeightLocal = (colorWeight - trajectoryColorMidpoint) ...
+                / (1 - trajectoryColorMidpoint);
+            legendColor = (1 - colorWeightLocal) * baseColor ...
+                + colorWeightLocal * highNColor;
+        end
+
+        plot(axE, trajectoryLegendX(segmentIdx:segmentIdx + 1), ...
+            trajectoryLegendY(datasetIdx) * [1, 1], ...
+            'Color', legendColor, ...
+            'LineWidth', trajectoryNLegendLineWidth)
+    end
+end
+
+set(axE, 'TickDir', 'both')
+axE.FontName = textFontName;
+axE.FontSize = tickLabelFontSize;
+axE.TickLabelInterpreter = 'tex';
+box(axE, 'on')
+
+set(mainFigure, 'Renderer', 'painters')
+
+%% Separate linear h-axis version of panel e
+
+figure('Name', 'Figure 5 panel e linear inset', ...
+    'Color', 'w')
+hold on
+fprintf('Figure 5: plotting separate linear panel e inset.\n')
+
+plot([0, 0], [1, trajectoryLambdaYLim(2)], ...
+    'r', ...
+    'LineWidth', trajectoryCriticalLineWidth)
+plot(linspace(linearTrajectoryHXLim(1), linearTrajectoryHXLim(2), 500), ...
+    zeros(1, 500), ...
+    'Color', trajectoryReferenceLineColor, ...
+    'LineWidth', 2)
+
+for datasetIdx = 1:length(files)
+    [Data, ~, ~] = loadDataFile(files(datasetIdx));
+    [~, mus, chis] = summarizeData(Data);
+
+    fullMus = lastofarray(mus);
+    fullChis = lastofarray(chis);
+
+    fullMus = fullMus(:).';
+    fullChis = fullChis(:).';
+
+    validTargets = isfinite(fullMus) ...
+        & isfinite(fullChis) ...
+        & fullMus < 0 ...
+        & abs(fullMus) < 1 ...
+        & fullChis > 0;
+
+    baseColor = hex2rgb(datasetColors(datasetIdx));
+    lowNColor = baseColor + (1 - baseColor) * trajectoryLowNLightenAmount;
+    highNColor = trajectoryHighNColor;
+
+    fprintf('  linear panel e: plotting %d full %s recordings.\n', ...
+        nnz(validTargets), char(datasetNames(datasetIdx)))
+
+    for popIdx = find(validTargets)
+        mTarget = fullMus(popIdx);
+        chiTarget = fullChis(popIdx);
+
+        u0 = sqrt(chiTarget ./ trajectoryNValues + mTarget.^2);
+        hTheory = nan(size(trajectoryNValues));
+        lambdaTheory = nan(size(trajectoryNValues));
+
+        goodTheory = isfinite(u0) ...
+            & u0 > 0 ...
+            & u0 < 1 ...
+            & abs(mTarget ./ u0) < 1;
+
+        lambdaTheory(goodTheory) = atanh(u0(goodTheory)) ./ u0(goodTheory);
+        hTheory(goodTheory) = atanh(mTarget ./ u0(goodTheory)) ...
+            ./ (trajectoryNValues(goodTheory) .* u0(goodTheory));
+
+        goodPlot = isfinite(hTheory) ...
+            & isfinite(lambdaTheory) ...
+            & hTheory < 0 ...
+            & lambdaTheory > 0;
+
+        for nIdx = 1:length(trajectoryNValues) - 1
+            if goodPlot(nIdx) && goodPlot(nIdx + 1)
+                colorWeight = (log10(mean(trajectoryNValues(nIdx:nIdx + 1))) ...
+                    - log10(trajectoryNMin)) ...
+                    / (log10(trajectoryNMax) - log10(trajectoryNMin));
+                colorWeight = max(0, min(1, colorWeight));
+
+                if colorWeight <= trajectoryColorMidpoint
+                    colorWeightLocal = colorWeight / trajectoryColorMidpoint;
+                    currentColor = (1 - colorWeightLocal) * lowNColor ...
+                        + colorWeightLocal * baseColor;
+                else
+                    colorWeightLocal = (colorWeight - trajectoryColorMidpoint) ...
+                        / (1 - trajectoryColorMidpoint);
+                    currentColor = (1 - colorWeightLocal) * baseColor ...
+                        + colorWeightLocal * highNColor;
+                end
+
+                plot(hTheory(nIdx:nIdx + 1), ...
+                    lambdaTheory(nIdx:nIdx + 1), ...
+                    'Color', currentColor, ...
+                    'LineWidth', trajectoryLineWidth)
+            end
+        end
+    end
+end
+
+scatter(0, 1, trajectoryCriticalPointSize, ...
+    'Marker', 'o', ...
+    'MarkerFaceColor', 'r', ...
+    'MarkerEdgeColor', 'r')
+
+axis square
+xlim(linearTrajectoryHXLim)
+ylim(linearTrajectoryLambdaYLim)
+xticks(linearTrajectoryHTicks)
+yticks(trajectoryLambdaTicks)
+yticklabels(arrayfun(@num2str, trajectoryLambdaTicks, 'UniformOutput', false))
+
+xlabel([labelFont 'External field {\ith}'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
+ylabel([labelFont 'Interaction strength \lambda'], ...
+    'Interpreter', 'tex', ...
+    'FontSize', axisLabelFontSize)
+
+set(gca, 'TickDir', 'both')
+ax = gca;
+ax.FontName = textFontName;
+ax.FontSize = tickLabelFontSize;
+ax.TickLabelInterpreter = 'tex';
+box on
 set(gcf, 'Renderer', 'painters')
 
 %% Local functions
@@ -379,86 +912,71 @@ function tf = isFigure5CacheCompatible(cachedSettings, currentSettings)
     for idx = 1:numel(fields)
         fieldName = fields{idx};
 
-        if ~isfield(cachedSettings, fieldName) ...
-                || ~isequaln(cachedSettings.(fieldName), currentSettings.(fieldName))
+        if ~isfield(cachedSettings, fieldName)
+            if strcmp(fieldName, 'selectedPopulationByDataset') ...
+                    && all(isnan(currentSettings.(fieldName)))
+                continue
+            end
+
+            tf = false;
+            return
+        end
+
+        if ~isequaln(cachedSettings.(fieldName), currentSettings.(fieldName))
             tf = false;
             return
         end
     end
 end
 
-function panelA = computePanelATileData(hTileValues, lambdaValues, tileSideLength, numPtsPerSide, jColorValues, hSaturationFloor)
-    [centers, edgeVals, tileHalfLength, tileColors] = makeParameterTiles( ...
-        hTileValues, lambdaValues, tileSideLength, numPtsPerSide, ...
-        jColorValues, hSaturationFloor);
-
-    panelA.mTiles = {};
-    panelA.chiTiles = {};
-    panelA.tileColors = [];
-    nTiles = size(centers, 1);
-
-    for k = 1:nTiles
-        if k == 1 || mod(k, 100) == 0 || k == nTiles
-            fprintf('  panel a: mean-field tile %d of %d.\n', k, nTiles)
-        end
-
-        h0 = centers(k, 1);
-        lambda0 = centers(k, 2);
-
-        [hSquare, lambdaSquare] = squareBoundary(h0, lambda0, edgeVals, tileHalfLength, numPtsPerSide);
-        [mVals, chiVals] = meanFieldStatistics(hSquare, lambdaSquare);
-        valid = isfinite(mVals) & isfinite(chiVals) & chiVals > 0;
-
-        if all(valid)
-            panelA.mTiles{end + 1} = mVals; %#ok<AGROW>
-            panelA.chiTiles{end + 1} = chiVals; %#ok<AGROW>
-            panelA.tileColors(end + 1, :) = tileColors(k, :); %#ok<AGROW>
-        end
-    end
-end
-
 function panelB = computePanelBData(files, datasetColors, fullMarkerSizeRange)
     fullNRange = fullDataNRange(files);
-    panelB = struct('mus', {}, 'chis', {}, 'markerSizes', {}, 'color', {});
+    panelB = struct('mus', {}, 'chis', {}, 'fullNs', {}, 'markerSizes', {}, 'color', {});
 
     for i = 1:length(files)
-        fprintf('  panel b: loading full data for %s.\n', files(i))
+        fprintf('  full-data panel: loading %s.\n', files(i))
         [Data, ~, ~] = loadDataFile(files(i));
         [Nss, mus, chis] = summarizeData(Data);
 
         fullNs = lastofarray(Nss);
         panelB(i).mus = lastofarray(mus);
         panelB(i).chis = lastofarray(chis);
+        panelB(i).fullNs = fullNs;
         panelB(i).markerSizes = markerSizeFromN(fullNs, fullNRange, fullMarkerSizeRange);
         panelB(i).color = hex2rgb(datasetColors(i));
     end
 end
 
-function parameterCurves = computeAllParameterCurveData(files, datasetNames, datasetColors, cacheFile, cacheSettings, cacheVersion, cacheData)
+function parameterCurves = computeAllParameterCurveData(files, datasetNames, datasetColors, parameterPopulationMode, selectedPopulationByDataset, cacheFile, cacheSettings, cacheVersion, cacheData)
     parameterCurves = cacheData.parameterCurves;
 
     for datasetIdx = 1:length(files)
         if numel(parameterCurves) >= datasetIdx ...
                 && isfield(parameterCurves(datasetIdx), 'populationCurves') ...
                 && ~isempty(parameterCurves(datasetIdx).populationCurves)
-            fprintf('  panels e/f: using cached %s data.\n', datasetNames(datasetIdx))
+            fprintf('  panels c/d: using cached %s data.\n', datasetNames(datasetIdx))
             continue
         end
 
-        fprintf('  panels e/f: computing %s (%d of %d).\n', ...
+        fprintf('  panels c/d: computing %s (%d of %d).\n', ...
             datasetNames(datasetIdx), datasetIdx, length(files))
 
+        [populationCurves, selectedPopulation, availablePopulations] = computeDatasetParameterCurveData( ...
+            files(datasetIdx), datasetColors(datasetIdx), datasetNames(datasetIdx), ...
+            parameterPopulationMode, selectedPopulationByDataset(datasetIdx));
+
         parameterCurves(datasetIdx).datasetName = datasetNames(datasetIdx);
-        parameterCurves(datasetIdx).populationCurves = computeDatasetParameterCurveData( ...
-            files(datasetIdx), datasetColors(datasetIdx), datasetNames(datasetIdx));
+        parameterCurves(datasetIdx).populationCurves = populationCurves;
+        parameterCurves(datasetIdx).selectedPopulation = selectedPopulation;
+        parameterCurves(datasetIdx).availablePopulations = availablePopulations;
 
         cacheData.parameterCurves = parameterCurves;
         saveFigure5Cache(cacheFile, cacheData, cacheSettings, cacheVersion, false)
-        fprintf('  panels e/f: saved partial cache after %s.\n', datasetNames(datasetIdx))
+        fprintf('  panels c/d: saved partial cache after %s.\n', datasetNames(datasetIdx))
     end
 end
 
-function populationCurves = computeDatasetParameterCurveData(fileName, datasetColor, datasetName)
+function [populationCurves, selectedPopulation, availablePopulations] = computeDatasetParameterCurveData(fileName, datasetColor, datasetName, parameterPopulationMode, requestedPopulation)
     [Data, ~, ~] = loadDataFile(fileName);
     [Nss, mus, chis] = summarizeData(Data);
 
@@ -467,7 +985,38 @@ function populationCurves = computeDatasetParameterCurveData(fileName, datasetCo
     chis = asPopulationMatrix(chis);
 
     nPopulations = size(Nss, 2);
+    availablePopulations = nPopulations;
+    selectedPopulation = nan;
+    sourcePopulationIndices = 1:nPopulations;
     baseColor = hex2rgb(datasetColor);
+
+    if parameterPopulationMode == "single"
+        if isfinite(requestedPopulation)
+            selectedPopulation = round(requestedPopulation);
+
+            if selectedPopulation < 1 || selectedPopulation > nPopulations
+                error('Requested population %d is outside the %s population range 1-%d.', ...
+                    selectedPopulation, datasetName, nPopulations)
+            end
+        else
+            counts = sum(isfinite(Nss), 1);
+            maxCount = max(counts);
+            candidatePopulations = find(counts == maxCount);
+            selectedPopulation = candidatePopulations(randi(numel(candidatePopulations)));
+            fprintf('    panels c/d: %s has %d populations tied with %d valid N values.\n', ...
+                datasetName, numel(candidatePopulations), maxCount)
+        end
+
+        fprintf('    panels c/d: selected %s population %d of %d.\n', ...
+            datasetName, selectedPopulation, nPopulations)
+
+        Nss = Nss(:, selectedPopulation);
+        mus = mus(:, min(selectedPopulation, size(mus, 2)));
+        chis = chis(:, min(selectedPopulation, size(chis, 2)));
+        nPopulations = 1;
+        sourcePopulationIndices = selectedPopulation;
+    end
+
     populationCurves = struct( ...
         'Nplot', {}, ...
         'hFit', {}, ...
@@ -476,11 +1025,12 @@ function populationCurves = computeDatasetParameterCurveData(fileName, datasetCo
         'lambdaTheory', {}, ...
         'hInfinity', {}, ...
         'lambdaInfinity', {}, ...
+        'sourcePopulation', {}, ...
         'popColor', {});
 
     for popIdx = 1:nPopulations
-        fprintf('    panels e/f: %s population %d of %d.\n', ...
-            datasetName, popIdx, nPopulations)
+        fprintf('    panels c/d: %s population %d of %d.\n', ...
+            datasetName, sourcePopulationIndices(popIdx), availablePopulations)
 
         Nuse = Nss(:, popIdx);
         muse = mus(:, min(popIdx, size(mus, 2)));
@@ -549,136 +1099,8 @@ function populationCurves = computeDatasetParameterCurveData(fileName, datasetCo
 
         finalMu = muse(find(isfinite(muse), 1, 'last'));
         populationCurves(curveIdx).lambdaInfinity = atanh(abs(finalMu)) / max(abs(finalMu), eps);
+        populationCurves(curveIdx).sourcePopulation = sourcePopulationIndices(popIdx);
         populationCurves(curveIdx).popColor = baseColor;
-    end
-end
-
-function [centers, edgeVals, tileHalfLength, tileColors] = makeParameterTiles(hTileValues, lambdaValues, tileSideLength, numPtsPerSide, jColorValues, hSaturationFloor)
-    centers = [];
-
-    for lambda0 = lambdaValues
-        for h0 = hTileValues
-            centers = [centers; [h0, lambda0]];
-        end
-    end
-
-    tileHalfLength = tileSideLength / 2;
-    edgeVals = linspace(-tileHalfLength, tileHalfLength, numPtsPerSide);
-
-    centerHs = centers(:, 1);
-    centerLambdas = centers(:, 2);
-    hNorm = (centerHs - min(centerHs)) / (max(centerHs) - min(centerHs));
-    lambdaNorm = (centerLambdas - min(centerLambdas)) / (max(centerLambdas) - min(centerLambdas));
-    colorPositions = linspace(0, 1, size(jColorValues, 1));
-
-    tileColors = zeros(size(centers, 1), 3);
-
-    for k = 1:size(centers, 1)
-        lambdaColor = interp1(colorPositions, jColorValues, lambdaNorm(k), 'linear');
-        hsvColor = rgb2hsv(lambdaColor);
-        saturationScale = hSaturationFloor + (1 - hSaturationFloor) * hNorm(k);
-        hsvColor(2) = hsvColor(2) * saturationScale;
-        tileColors(k, :) = hsv2rgb(hsvColor);
-    end
-end
-
-function [hSquare, lambdaSquare] = squareBoundary(h0, lambda0, edgeVals, tileHalfLength, numPtsPerSide)
-    hSquare = [h0 + edgeVals, ...
-        h0 + tileHalfLength * ones(1, numPtsPerSide), ...
-        h0 + fliplr(edgeVals), ...
-        h0 - tileHalfLength * ones(1, numPtsPerSide)];
-
-    lambdaSquare = [lambda0 - tileHalfLength * ones(1, numPtsPerSide), ...
-        lambda0 + edgeVals, ...
-        lambda0 + tileHalfLength * ones(1, numPtsPerSide), ...
-        lambda0 + fliplr(edgeVals)];
-end
-
-function [mVals, chiVals] = meanFieldStatistics(hVals, lambdaVals)
-    mVals = nan(size(hVals));
-    chiVals = nan(size(hVals));
-
-    for idx = 1:numel(hVals)
-        h = hVals(idx);
-        lambda = lambdaVals(idx);
-        m = solveMeanFieldBranch(h, lambda);
-        denominator = 1 - lambda * (1 - m^2);
-        chi = (1 - m^2) / denominator;
-
-        if isfinite(m) && isfinite(chi) && denominator > 0
-            mVals(idx) = m;
-            chiVals(idx) = chi;
-        end
-    end
-end
-
-function m = solveMeanFieldBranch(h, lambda)
-    if abs(h) < 1e-12
-        m = 0;
-        return
-    end
-
-    if h > 0
-        interval = [0, 0.999999];
-    else
-        interval = [-0.999999, 0];
-    end
-
-    f = @(m) m - tanh(h + lambda * m);
-
-    try
-        m = fzero(f, interval);
-    catch
-        m = fzero(f, sign(h) * 0.5);
-    end
-end
-
-function y = normalizedFreeEnergy(score)
-    peaks = findpeaks(score);
-
-    if numel(peaks) >= 2
-        topPeaks = maxk(peaks, 2);
-        referenceValue = min(topPeaks);
-    else
-        referenceValue = max(score);
-    end
-
-    y = -(score - referenceValue);
-end
-
-function plotAllDatasetParameterCurves(axH, axLambda, datasetCurveData, markerSize, markerEdgeColor, markerLineWidth, markerFaceAlpha, theoryLineWidth, infinityLineWidth)
-    for popIdx = 1:numel(datasetCurveData.populationCurves)
-        curve = datasetCurveData.populationCurves(popIdx);
-        popColor = curve.popColor;
-
-        scatter(axH, curve.Nplot, curve.hFit, markerSize, ...
-            'Marker', 'o', ...
-            'MarkerEdgeColor', markerEdgeColor, ...
-            'MarkerFaceColor', popColor, ...
-            'MarkerFaceAlpha', markerFaceAlpha, ...
-            'LineWidth', markerLineWidth)
-        plot(axH, curve.Nplot, curve.hTheory, ...
-            'Color', popColor, ...
-            'LineWidth', theoryLineWidth)
-
-        scatter(axLambda, curve.Nplot, curve.lambdaFit, markerSize, ...
-            'Marker', 'o', ...
-            'MarkerEdgeColor', markerEdgeColor, ...
-            'MarkerFaceColor', popColor, ...
-            'MarkerFaceAlpha', markerFaceAlpha, ...
-            'LineWidth', markerLineWidth)
-        plot(axLambda, curve.Nplot, curve.lambdaTheory, ...
-            'Color', popColor, ...
-            'LineWidth', theoryLineWidth)
-
-        plot(axH, [min(curve.Nplot), max(curve.Nplot)], curve.hInfinity * [1, 1], ...
-            '--', ...
-            'Color', popColor, ...
-            'LineWidth', infinityLineWidth)
-        plot(axLambda, [min(curve.Nplot), max(curve.Nplot)], curve.lambdaInfinity * [1, 1], ...
-            '--', ...
-            'Color', popColor, ...
-            'LineWidth', infinityLineWidth)
     end
 end
 
@@ -718,6 +1140,26 @@ function formatParameterAxis(ax, textFontName, tickLabelFontSize, xTickValues, x
     ax.XTick = xTickValues;
     ax.XTickLabel = xTickLabels;
     ax.TickLabelInterpreter = 'tex';
+end
+
+function setParameterAxisXLim(ax, datasetCurveData)
+    if isempty(datasetCurveData.populationCurves)
+        return
+    end
+
+    allN = [];
+
+    for idx = 1:numel(datasetCurveData.populationCurves)
+        allN = [allN; datasetCurveData.populationCurves(idx).Nplot(:)]; %#ok<AGROW>
+    end
+
+    allN = allN(isfinite(allN) & allN > 0);
+
+    if isempty(allN)
+        return
+    end
+
+    xlim(ax, [min(allN), max(allN)])
 end
 
 function [Data, hs, ls] = loadDataFile(fileName)

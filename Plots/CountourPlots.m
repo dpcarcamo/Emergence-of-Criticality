@@ -13,11 +13,11 @@ plotsDir = fileparts(mfilename('fullpath'));
 %% Colormap
 
 colors = [
-    0.5020    0.1765    0.1765
-    0.7020         0         0
-    0.8941    0.2039         0
-    0.9725    0.5373         0
-    1.0000    0.6745    0.0667
+    1.0000    1.0000    1.0000
+    0.8800    0.8400    1.0000
+    0.4500    0.5200    1.0000
+    0.0400    0.1500    0.6500
+         0         0         0
 ];
 cmap = interpolateColors(colors, 256);
 axisLabelFontSize = 30;
@@ -25,6 +25,8 @@ tickLabelFontSize = 26;
 textFontName = 'Helvetica';
 labelFont = ['\fontname{' textFontName '}'];
 plotPanelsSeparately = false;
+lambdaPlotLim = [0 3];
+lambdaTicks = 0:1:3;
 criticalHPlot = -0.0005;
 criticalLineWidth = 3;
 criticalPointSize = 105;
@@ -72,7 +74,8 @@ plotContourSet( ...
     F_jeffreys, h_vals, lambda_vals, plot_lambda_vals, Ns, cmap, ...
     [-7 8], 'Contour of log Jefferies Prior (h,\lambda)', ...
     labelFont, textFontName, axisLabelFontSize, tickLabelFontSize, ...
-    plotPanelsSeparately, criticalHPlot, criticalLineWidth, criticalPointSize, criticalColor);
+    plotPanelsSeparately, lambdaPlotLim, lambdaTicks, ...
+    criticalHPlot, criticalLineWidth, criticalPointSize, criticalColor);
 plotStandaloneLogColorbar(cmap, [-7 8], ...
     'Jeffreys prior', textFontName, tickLabelFontSize);
 
@@ -82,11 +85,12 @@ plotContourSet( ...
     F_jacobian, h_vals, lambda_vals, plot_lambda_vals, Ns, cmap, ...
     [-9 6], 'Contour of log Jacobian (h,\lambda)', ...
     labelFont, textFontName, axisLabelFontSize, tickLabelFontSize, ...
-    plotPanelsSeparately, criticalHPlot, criticalLineWidth, criticalPointSize, criticalColor);
+    plotPanelsSeparately, lambdaPlotLim, lambdaTicks, ...
+    criticalHPlot, criticalLineWidth, criticalPointSize, criticalColor);
 plotStandaloneLogColorbar(cmap, [-9 6], ...
-    'Jacobian |{\bfJ}|', textFontName, tickLabelFontSize+4);
+    'Jacobian |J|', textFontName, tickLabelFontSize+4);
 
-function plotContourSet(F, h_vals, lambda_vals, plot_lambda_vals, Ns, cmap, c_limits, plot_title, labelFont, textFontName, axisLabelFontSize, tickLabelFontSize, plotPanelsSeparately, criticalHPlot, criticalLineWidth, criticalPointSize, criticalColor)
+function plotContourSet(F, h_vals, lambda_vals, plot_lambda_vals, Ns, cmap, c_limits, plot_title, labelFont, textFontName, axisLabelFontSize, tickLabelFontSize, plotPanelsSeparately, lambdaPlotLim, lambdaTicks, criticalHPlot, criticalLineWidth, criticalPointSize, criticalColor)
     if ~plotPanelsSeparately
         figure('Name', plot_title, 'Color', 'w')
         tiledlayout(1, length(Ns), ...
@@ -102,7 +106,9 @@ function plotContourSet(F, h_vals, lambda_vals, plot_lambda_vals, Ns, cmap, c_li
         end
 
         hold on
-        contourf(h_vals, plot_lambda_vals, log10(abs(F(lambda_vals > 0.01, :, count))), 15)
+        [~, contourHandle] = contourf(h_vals, plot_lambda_vals, ...
+            log10(abs(F(lambda_vals > 0.01, :, count))), 15);
+        contourHandle.LineColor = 'none';
         colormap(cmap)
         clim(c_limits)
         %cb = colorbar('FontSize', tickLabelFontSize, 'FontName', textFontName);
@@ -121,9 +127,12 @@ function plotContourSet(F, h_vals, lambda_vals, plot_lambda_vals, Ns, cmap, c_li
         axis square
 
         xlim([-1, criticalHPlot])
+        ylim(lambdaPlotLim)
         xscale log
         xticks([-1, -0.1, -0.01, -0.001, criticalHPlot])
         xticklabels({'-10^0', '-10^{-1}', '-10^{-2}', '-10^{-3}', ' 0'})
+        yticks(lambdaTicks)
+        yticklabels(arrayfun(@num2str, lambdaTicks, 'UniformOutput', false))
 
         set(gca, 'TickDir', 'both')
         ax = gca;
@@ -131,7 +140,7 @@ function plotContourSet(F, h_vals, lambda_vals, plot_lambda_vals, Ns, cmap, c_li
         ax.FontSize = tickLabelFontSize;
         box on
 
-        plot([criticalHPlot, criticalHPlot], [1, max(plot_lambda_vals)], ...
+        plot([criticalHPlot, criticalHPlot], [1, lambdaPlotLim(2)], ...
             'Color', criticalColor, ...
             'LineWidth', criticalLineWidth, ...
             'Clipping', 'off')

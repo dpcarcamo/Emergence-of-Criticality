@@ -11,6 +11,8 @@ repoRoot = fileparts(plotsDir);
 addpath(repoRoot);
 
 Ns = [20, 100, 1000];
+lambdaPlotLim = [0 3];
+lambdaTicks = 0:1:3;
 axisLabelFontSize = 30;
 tickLabelFontSize = 26;
 titleFontSize = 18;
@@ -84,11 +86,13 @@ end
 
 %%
 edgeColors = {
-    [0.05 0.25 1 0.55], ...
-    [0 0.85 0.15 0.55], ...
-    [1 0.05 0.05 0.55], ...
-    [0 0.95 0.95 0.55]
+    [0.00 0.55 0.60 0.75], ... % bottom edge
+    [0.85 0.05 0.45 0.75], ... % right edge
+    [0.00 0.45 0.08 0.75], ... % top edge
+    [0.00 0.10 0.70 0.75]  ... % left edge
 };
+criticalColor = 'r';
+criticalLineWidth = 4;
 
 dotSize = 45;
 edgeWidth = 5;
@@ -132,7 +136,7 @@ for a = 1:length(Ns)
     xlabel([labelFont 'Average activity {\itm}'], ...
         'Interpreter', 'tex', ...
         'FontSize', insetAxisLabelFontSize)
-    ylabel([labelFont 'Susceptibility \chi'], ...
+    ylabel([labelFont 'Correlation \chi'], ...
         'Interpreter', 'tex', ...
         'FontSize', insetAxisLabelFontSize)
     % title(['(\mu,\chi), N = ', num2str(N)], ...
@@ -144,7 +148,9 @@ for a = 1:length(Ns)
     ax.FontSize = insetTickLabelFontSize;
 
     axis square
-    xlim([muMin-0.05, muMax+0.05])
+    xlim([-1, 0])
+    xticks([-1, -0.5, 0])
+    xticklabels({'-1', '-0.5', '0'})
     ylim([chiMin-0.1, chiMax+0.1])
     end
 
@@ -169,8 +175,12 @@ for a = 1:length(Ns)
     end
 
     % Critical Line
-    plot([0, 0], [1, 3], 'r', 'LineWidth', 3)
-    scatter(0, 1, 105, 'r', 'filled')
+    plot([0, 0], [1, 3], ...
+        'Color', criticalColor, ...
+        'LineWidth', criticalLineWidth)
+    scatter(0, 1, 105, ...
+        'MarkerFaceColor', criticalColor, ...
+        'MarkerEdgeColor', criticalColor)
 
     xlabel([labelFont 'External field {\ith}'], ...
         'Interpreter', 'tex', ...
@@ -193,7 +203,9 @@ for a = 1:length(Ns)
     % xticks([-1, -0.1, -0.01, -0.001])
     % xticklabels({'-10^0','-10^{-1}','-10^{-2}','-10^{-3}' })
 
-    ylim([0,3])
+    ylim(lambdaPlotLim)
+    yticks(lambdaTicks)
+    yticklabels(arrayfun(@num2str, lambdaTicks, 'UniformOutput', false))
     set(gca, 'TickDir', 'both')
     ax = gca;
     ax.FontName = textFontName;

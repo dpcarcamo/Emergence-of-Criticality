@@ -24,19 +24,21 @@ addpath(strcat(newPath{1}, '\Stringer'))
 
 % --- Plot settings ---
 n = 20;          % system size for the Jacobian versus h panel
-tileSideLength = 0.05;    % side length for touching squares in (h,lambda) space
-numPtsPerSide = 20;      % number of points along each square edge
+tileSideLength = 0.025;    % side length for touching squares in (h,lambda) space
+numPtsPerSide = 40;      % number of points along each square edge
 mappedNValues = [20 100 1000];
 jacobianNValues = unique(round(logspace(log10(10), log10(1000), 120)));
 lambdaValues = -0.001:tileSideLength:3;
 hTileValues = -1 + tileSideLength/2:tileSideLength:-tileSideLength/2;
-jacobianLambdaValues = [0.2:0.5:3];
+jacobianLambdaValues = [0.5:0.5:2.5];
+jacobianLineWidth = 3.5;
+jacobianLabelFontSize = 18;
 axisLabelFontSize = 32;
 tickLabelFontSize = 18;
 textFontName = 'Helvetica';
 labelFont = ['\fontname{' textFontName '}'];
 jColorValues = [
-    0.5765    0.5843    0.5961
+    0.2549    0.2510    0.2588
     0.5020    0.1765    0.1765
     0.7020         0         0
     0.8941    0.2039         0
@@ -44,7 +46,7 @@ jColorValues = [
     1.0000    0.6745    0.0667
     1.0000    0.7745    0.1667
 ];
-hSaturationFloor = 0.15;  % saturation at the most negative h values
+hSaturationFloor = 0.0001;  % saturation at the most negative h values
 
 centers = [];
 
@@ -129,7 +131,7 @@ ax.LineWidth = 1.5;
 % --- Plot Jacobian versus h ---
 nexttile(2)
 hold on
-hs = linspace(-2,-0.001, 1000); 
+hs = linspace(-2,-0.01, 1000);
 
 for l = jacobianLambdaValues
 
@@ -146,7 +148,7 @@ for l = jacobianLambdaValues
 
     plot(hs, Jacs, ...
         color=color, ...
-        LineWidth=2, ...
+        LineWidth=jacobianLineWidth, ...
         DisplayName=sprintf('\\lambda = %.1f', l))
 
 end
@@ -154,12 +156,21 @@ end
 legend('Location', 'best', ...
     'Interpreter', 'tex', ...
     'FontName', textFontName, ...
-    'FontSize', tickLabelFontSize)
+    'FontSize', 12)
+
+text(0.08, 0.92, sprintf('N = %d', n), ...
+    'Units', 'normalized', ...
+    'FontName', textFontName, ...
+    'FontSize', jacobianLabelFontSize, ...
+    'HorizontalAlignment', 'left', ...
+    'VerticalAlignment', 'top')
+
+
 
 xlabel([labelFont 'External field {\ith}'], ...
     'Interpreter', 'tex', ...
     'FontSize', axisLabelFontSize)
-ylabel([labelFont 'Jacobian |{\bfJ}|'], ...
+ylabel([labelFont 'Jacobian |J|'], ...
     'Interpreter', 'tex', ...
     'FontSize', axisLabelFontSize)
 yscale log
@@ -175,9 +186,9 @@ ax.TickLabelInterpreter = 'tex';
 
 set(gcf, 'Renderer', 'painters');
 xscale log
-xlim([-1,-0.001])
-xticks([-1, -0.1, -0.01, -0.001])
-xticklabels({'-10^{0}', '-10^{-1}', '-10^{-2}', '-10^{-3}'})
+xlim([-1,-0.01])
+xticks([-1, -0.1, -0.01])
+xticklabels({'-10^{0}', '-10^{-1}', '-10^{-2}'})
 xtickangle(0)
 %
 
@@ -195,13 +206,20 @@ for lambda0 = jacobianLambdaValues
     y = (lambda0 - min(centerLambdas)) / (max(centerLambdas) - min(centerLambdas));
     color = interp1(jColorPositions, jColorValues, y, 'linear');
 
-    plot(jacobianNValues, Jacs, color=color, LineWidth=2)
+    plot(jacobianNValues, Jacs, color=color, LineWidth=jacobianLineWidth)
 end
 
-xlabel([labelFont 'System size {\itN}'], ...
+text(0.08, 0.92, sprintf('h = %.0e', jacobianReferenceH), ...
+    'Units', 'normalized', ...
+    'FontName', textFontName, ...
+    'FontSize', jacobianLabelFontSize, ...
+    'HorizontalAlignment', 'left', ...
+    'VerticalAlignment', 'top')
+
+xlabel([labelFont 'Number of neurons {\itN}'], ...
     'Interpreter', 'tex', ...
     'FontSize', axisLabelFontSize)
-ylabel([labelFont 'Jacobian |{\bfJ}|'], ...
+ylabel([labelFont 'Jacobian |J|'], ...
     'Interpreter', 'tex', ...
     'FontSize', axisLabelFontSize)
 axis square
@@ -272,14 +290,14 @@ for nIdx = 1:length(mappedNValues)
 
     % Independent line
     x = linspace(-1,-0.0001,500);
-    plot(x, 1-x.^2, 'Color', [0.5765    0.5843    0.5961], 'LineWidth', 3)
+    %plot(x, 1-x.^2, 'Color', [0.5765    0.5843    0.5961], 'LineWidth', 3)
 
     xlabel([labelFont 'Average activity {\itm}'], ...
         'Interpreter', 'tex', ...
         'FontSize', axisLabelFontSize)
 
     if nIdx == 1
-        ylabel([labelFont 'Susceptibility \chi'], ...
+        ylabel([labelFont 'Correlation \chi'], ...
             'Interpreter', 'tex', ...
             'FontSize', axisLabelFontSize)
     else
@@ -289,7 +307,7 @@ for nIdx = 1:length(mappedNValues)
     axis square
     xlim([mappedMuMin, mappedMuMax])
     % ylim([mappedChiMin, 1.05 * mappedChiMax])
-    ylim([0,1000])
+    ylim([0.01,1000])
     ax = gca;
 
     yscale log

@@ -33,11 +33,13 @@ criticalPointSize = 85;
 modelYLim = [0, 2.5];
 statisticsXLim = [-1, -0.8];
 statisticsYLim = [0.05, 70];
+statisticsYLimgrid = [0.05, 10];
 upperBoundShadeColor = [1, 0, 0];
 upperBoundShadeAlpha = 0.15;
 upperBoundLineWidth = 2;
 plotFullDataPanelsTogether = true;
 plotNGridFigure = true;
+plotNGridLinearParameterFigure = true;
 gridNValues = [20 100 1000];
 figure4MarkerSizes = [45 75 120];
 plotMarkerSizeLegends = true;
@@ -123,7 +125,7 @@ for f = 1:length(figureSets)
     xlabel([labelFont 'Average activity {\itm}'], ...
         'Interpreter', 'tex', ...
         'FontSize', axisLabelFontSize)
-    ylabel([labelFont 'Susceptibility \chi'], ...
+    ylabel([labelFont 'Correlation \chi'], ...
         'Interpreter', 'tex', ...
         'FontSize', axisLabelFontSize)
     set(gca, 'YScale', 'log')
@@ -180,7 +182,7 @@ axis square
 xlabel([labelFont 'Average activity {\itm}'], ...
     'Interpreter', 'tex', ...
     'FontSize', axisLabelFontSize)
-ylabel([labelFont 'Susceptibility \chi'], ...
+ylabel([labelFont 'Correlation \chi'], ...
     'Interpreter', 'tex', ...
     'FontSize', axisLabelFontSize)
 set(gca, 'YScale', 'log')
@@ -358,7 +360,7 @@ if plotNGridFigure
         x = linspace(-1, 0, 1000);
         plot(x, 1 - x.^2, 'LineWidth', 2, 'Color', referenceLineColor)
 
-        ylim(statisticsYLim)
+        ylim(statisticsYLimgrid)
         xlim(statisticsXLim)
         axis square
         % title(sprintf('N = %g', currentN), ...
@@ -368,7 +370,7 @@ if plotNGridFigure
             'Interpreter', 'tex', ...
             'FontSize', axisLabelFontSize)
         if gridIdx == 1
-            ylabel([labelFont 'Susceptibility \chi'], ...
+            ylabel([labelFont 'Correlation \chi'], ...
                 'Interpreter', 'tex', ...
                 'FontSize', axisLabelFontSize)
         else
@@ -440,6 +442,70 @@ if plotNGridFigure
         ax.FontName = textFontName;
         ax.FontSize = tickLabelFontSize;
         ax.TickLabelInterpreter = 'tex';
+    end
+end
+
+%% Plot N grid in model space with linear h axis
+
+if plotNGridLinearParameterFigure
+    figure('Name', 'Data grid for fixed N model linear h axis', 'Color', 'w')
+    tiledlayout(1, length(gridNValues), ...
+        'TileSpacing', 'compact', ...
+        'Padding', 'compact');
+
+    for gridIdx = 1:length(gridNValues)
+        currentN = gridNValues(gridIdx);
+
+        nexttile(gridIdx)
+        hold on
+
+        plot([0, 0], [1, modelYLim(2)], 'r', 'LineWidth', 2)
+        plot([-1, 1], [0, 0], ...
+            'Color', referenceLineColor, ...
+            'LineWidth', 2)
+
+        for i = 1:length(files)
+            [Data, hs, ls] = loadDataFile(files(i));
+            [Nss, ~, ~] = summarizeData(Data);
+
+            baseColor = hex2rgb(colors(i));
+            [~, ~, ~, cFull] = dataAmountColors(baseColor);
+            pointMarkerSize = markerSizeForN(currentN, gridNValues, figure4MarkerSizes);
+            dim = datasetSearchDim(i);
+
+            [~, I] = min(abs(Nss - currentN), [], dim, "linear");
+            scatter(hs(I), ls(I), pointMarkerSize, ...
+                'Marker', dataMarker, ...
+                'MarkerEdgeColor', markerEdgeColor, ...
+                'MarkerFaceColor', cFull, ...
+                'MarkerFaceAlpha', markerFaceAlpha, ...
+                'LineWidth', markerLineWidth)
+        end
+
+        scatter(0, 1, criticalPointSize, ...
+            'Marker', dataMarker, ...
+            'MarkerFaceColor', 'r', ...
+            'MarkerEdgeColor', 'r')
+
+        xlim([-1, 1])
+        ylim(modelYLim)
+        axis square
+        xlabel([labelFont 'External field {\ith}'], ...
+            'Interpreter', 'tex', ...
+            'FontSize', axisLabelFontSize)
+        if gridIdx == 1
+            ylabel([labelFont 'Interaction strength \lambda'], ...
+                'Interpreter', 'tex', ...
+                'FontSize', axisLabelFontSize)
+        else
+            ylabel('')
+        end
+        set(gca, 'TickDir', 'both')
+        ax = gca;
+        ax.FontName = textFontName;
+        ax.FontSize = tickLabelFontSize;
+        ax.TickLabelInterpreter = 'tex';
+        box on
     end
 end
 

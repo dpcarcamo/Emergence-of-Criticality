@@ -97,11 +97,11 @@ end
 plot(muCurve, chiIndependent, ...
     'b-', ...
     'LineWidth', 1.25, ...
-    'DisplayName', '1 - \mu^2');
+    'DisplayName', '1 - m^2');
 plot(muCurve, chiCritical, ...
     'r-', ...
     'LineWidth', 1.25, ...
-    'DisplayName', '\mu(1-\mu^2)/(\mu - atanh(\mu)(1-\mu^2))');
+    'DisplayName', 'm(1-m^2)/(m - atanh(m)(1-m^2))');
 muLegendShown = false(size(muColorLevels));
 for idx = 1:size(initialConditions, 1)
     mu0 = initialConditions(idx, 1);
@@ -113,7 +113,7 @@ for idx = 1:size(initialConditions, 1)
         label = '';
         visibility = 'off';
     else
-        label = sprintf('\\mu_0 = %.3g', mu0);
+        label = sprintf('m_0 = %.3g', mu0);
         visibility = 'on';
         muLegendShown(muColorIdx) = true;
     end
@@ -129,7 +129,7 @@ end
 xlim([muMinPlot, muMaxPlot])
 ylim([chiMinPlot, chiMaxPlot])
 set(gca, 'FontSize', tickLabelFontSize)
-xlabel('\mu_0', 'FontSize', axisLabelFontSize)
+xlabel('m_0', 'FontSize', axisLabelFontSize)
 ylabel('\chi_0', 'FontSize', axisLabelFontSize)
 title('Initial conditions')
 
@@ -167,7 +167,7 @@ for k = 1:numel(okIdx)
         label = '';
         visibility = 'off';
     else
-        label = sprintf('\\mu_0 = %.3g', trajectory.mu0);
+        label = sprintf('m_0 = %.3g', trajectory.mu0);
         visibility = 'on';
         legendShown(muColorIdx) = true;
     end
@@ -236,9 +236,9 @@ if checkInvariants
                 'LineWidth', 1.25);
         end
         xlabel('N', 'FontSize', axisLabelFontSize)
-        ylabel('\mu(N) - \mu_0', 'FontSize', axisLabelFontSize)
+        ylabel('m(N) - m_0', 'FontSize', axisLabelFontSize)
         set(gca, 'FontSize', tickLabelFontSize)
-        title('\mu drift')
+        title('m drift')
         hold off
 
         subplot(2, 1, 2)
