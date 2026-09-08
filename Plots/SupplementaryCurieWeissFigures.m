@@ -15,14 +15,14 @@ addpath(fullfile(repoRoot, 'Stringer'))
 %% Plot settings
 
 files = ["Allenhldata.mat", "hippomuchidata.mat", "stringerhldata.mat"];
-datasetNames = ["Allen", "Hippocampus", "Stringer"];
+datasetNames = ["Thalamus and visual cortex", "Hippocampus", "Visual Cortex"];
 markers = {'square', 'o', '^'};
 colors = ["#2676ad", "#4f4cc4", "#2f682c"];
 
 realTargetSizes = [20 100 1000 -1];
-Tzoom = linspace(0.8, 2.5, 250);
 alphaVals = linspace(0, 2, 101);
 cwTvals = linspace(0.5, 2, 250);
+temperatureXLim = [min(cwTvals), max(cwTvals)];
 cwDhProbeVals = -logspace(-6, -2, 140);
 cwPlotAbsJacobian = true;
 cwPlotLogJacobian = true;
@@ -34,6 +34,13 @@ axisLabelFontSize = 18;
 tickLabelFontSize = 14;
 titleFontSize = 14;
 textFontName = 'Helvetica';
+showTargetLegend = true;
+targetLegendLocation = 'eastoutside';
+legendFontSize = 11;
+legendLineWidth = 2.4;
+sizeGradientLegendColor = [0.45 0.45 0.45];
+panelEGuideLabelFraction = 0.72;
+panelEGuideLabelYOffset = 1.20;
 
 %% Build targets
 
@@ -95,14 +102,14 @@ for a = 1:nTargets
     N = targets(a).N;
     hN = targets(a).h;
     lambdaN = targets(a).lambda;
-    Cvals = zeros(size(Tzoom));
+    Cvals = zeros(size(cwTvals));
 
-    for b = 1:numel(Tzoom)
-        [~, ~, ~, ~, C] = muChiExact2Spin(hN / Tzoom(b), lambdaN / Tzoom(b), N);
+    for b = 1:numel(cwTvals)
+        [~, ~, ~, ~, C] = muChiExact2Spin(hN / cwTvals(b), lambdaN / cwTvals(b), N);
         Cvals(b) = C;
     end
 
-    plot(Tzoom, Cvals / N, ...
+    plot(cwTvals, Cvals / N, ...
         'LineWidth', lineWidth, ...
         'Color', targets(a).color, ...
         'DisplayName', targets(a).label);
@@ -112,10 +119,35 @@ xline(1, 'r-', 'T = 1', ...
     'LineWidth', guideLineWidth, ...
     'HandleVisibility', 'off');
 
-xlabel('Dummy temperature T')
+xlabel('Temperature T')
 ylabel('Specific heat C(T)/N')
 formatSupplementAxis(gca, textFontName, tickLabelFontSize, ...
     axisLabelFontSize, titleFontSize)
+xlim(temperatureXLim)
+
+if showTargetLegend
+    legendHandles = gobjects(numel(datasetNames) + 1, 1);
+    legendLabels = cell(numel(datasetNames) + 1, 1);
+
+    for datasetIdx = 1:numel(datasetNames)
+        legendHandles(datasetIdx) = plot(nan, nan, '-', ...
+            'Color', hex2rgb(colors(datasetIdx)), ...
+            'LineWidth', legendLineWidth);
+        legendLabels{datasetIdx} = char(datasetNames(datasetIdx));
+    end
+
+    legendHandles(end) = plot(nan, nan, '-', ...
+        'Color', sizeGradientLegendColor, ...
+        'LineWidth', legendLineWidth);
+    legendLabels{end} = 'N = 20 \rightarrow full';
+
+    legend(legendHandles, legendLabels, ...
+        'Interpreter', 'tex', ...
+        'FontName', textFontName, ...
+        'FontSize', legendFontSize, ...
+        'Location', targetLegendLocation, ...
+        'Box', 'off')
+end
 
 %% Specific heat at fixed activity
 
@@ -168,7 +200,7 @@ xline(1, 'r-', 'T = 1', ...
     'LineWidth', guideLineWidth, ...
     'HandleVisibility', 'off');
 
-xlabel('Dummy temperature T')
+xlabel('Temperature T')
 
 if cwPlotAbsJacobian
     ylabel('|J|')
@@ -179,6 +211,7 @@ end
 formatSupplementAxis(gca, textFontName, tickLabelFontSize, ...
     axisLabelFontSize, titleFontSize)
 yscale log
+xlim(temperatureXLim)
 
 %% Jacobian at fixed activity
 
@@ -210,7 +243,7 @@ xline(1, 'r-', '\alpha = 1', ...
     'LineWidth', guideLineWidth, ...
     'HandleVisibility', 'off');
 
-xlabel('Correlation scale \alpha')
+xlabel('Interaction scale \alpha')
 
 if cwPlotAbsJacobian
     ylabel('|J|')
@@ -248,15 +281,27 @@ guide = refMu * (abs(cwDhProbeVals) / refH);
 
 loglog(cwDhProbeVals, guide, 'k--', ...
     'LineWidth', guideLineWidth, ...
-    'DisplayName', '\delta h^{-1} guide');
+    'HandleVisibility', 'off');
 
 xlabel('Field perturbation \delta h')
-ylabel('Response |\Delta\mu|')
+ylabel('Response |\Delta m|')
 
 formatSupplementAxis(gca, textFontName, tickLabelFontSize, ...
     axisLabelFontSize, titleFontSize)
 xscale log
 yscale log
+
+panelEGuideLabelIndex = max(1, min(numel(cwDhProbeVals), ...
+    round(panelEGuideLabelFraction * numel(cwDhProbeVals))));
+text(cwDhProbeVals(panelEGuideLabelIndex), ...
+    panelEGuideLabelYOffset * guide(panelEGuideLabelIndex), ...
+    '\sim |\delta h^{-1}|', ...
+    'Interpreter', 'tex', ...
+    'FontName', textFontName, ...
+    'FontSize', axisLabelFontSize, ...
+    'Color', 'k', ...
+    'HorizontalAlignment', 'left', ...
+    'VerticalAlignment', 'bottom')
 
 %% Entropy versus energy for varying system sizes
 
@@ -288,6 +333,8 @@ formatSupplementAxis(gca, textFontName, tickLabelFontSize, ...
     axisLabelFontSize, titleFontSize)
 
 set(gcf, 'Renderer', 'painters')
+xlim([0,1.5])
+ylim([0,1.5])
 
 %% Local functions
 
@@ -372,11 +419,11 @@ function targets = makeRealDataTargets(files, datasetNames, markers, colors, req
                 muThis = lastFinite(mus);
                 chiThis = lastFinite(chis);
                 NThis = lastFinite(Nss);
-                labelThis = sprintf('%s full', datasetNames(i));
+                labelThis = sprintf('%s, full', datasetNames(i));
                 colorThis = baseColor;
             else
                 [muThis, chiThis, NThis] = getNearestSizePoint(mus, chis, Nss, val);
-                labelThis = sprintf('%s N \\approx %d', datasetNames(i), val);
+                labelThis = sprintf('%s, N = %d', datasetNames(i), val);
 
                 if val == 20
                     colorThis = lightenColor(baseColor, 0.60);

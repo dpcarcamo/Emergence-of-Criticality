@@ -500,7 +500,7 @@ plot(x, 1 - x.^2, 'k-', 'LineWidth', 1.5, ...
 plot(x, x.*(1-x.^2)./(x-atanh(x).*(1-x.^2)), 'r-', 'LineWidth', 1.5, ...
     'DisplayName', 'independent bound');
 xlim([-1,-0.5])
-xlabel('\mu');
+xlabel('m');
 ylabel('\chi');
 title('Targets used for Curie-Weiss inversion');
 set(gca, 'YScale', 'log');
@@ -615,10 +615,10 @@ if plotCWCriticalityByDataset
         guide = refMu * (abs(cwDhProbeVals) / refH).^(1);
 
         loglog(cwDhProbeVals, guide, 'k--', 'LineWidth', 1.4, ...
-            'DisplayName', '\delta h^{-1} guide');
+            'DisplayName', '\sim |\delta h^{-1}|');
 
         xlabel('field perturbation \delta h');
-        ylabel('|\Delta \mu|');
+        ylabel('|\Delta m|');
         title('Response around inferred T = 1 model');
         legend('Location', 'best');
         grid on;

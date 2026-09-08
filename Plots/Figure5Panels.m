@@ -33,7 +33,7 @@ referenceLineColor = "#414042";
 markerSize = 130;
 markerEdgeColor = [0 0 0];
 markerLineWidth = 0.7;
-markerFaceAlpha = 0.55;
+markerFaceAlpha = 0.45;
 fullMarkerSizeRange = [85 240];
 fullDataMarkerSizeScale = 1.15;
 nLegendValues = [1000 10000];
@@ -62,17 +62,20 @@ panelCYLimits = [
     -10, -1e-3
 ];
 panelCYTicks = {
-    [-10, -1, -1e-1, -1e-2, -1e-3]
-    [-10, -1, -1e-1, -1e-2, -1e-3, -1e-4]
-    [-10, -1, -1e-1, -1e-2, -1e-3]
+    [-10, -1e-1, -1e-3]
+    [-10, -1e-2, -1e-4]
+    [-10, -1e-1, -1e-3]
 };
 panelCYTickLabels = {
-    {'-10^{1}', '-10^{0}', '-10^{-1}', '-10^{-2}', '-10^{-3}'}
-    {'-10^{1}', '-10^{0}', '-10^{-1}', '-10^{-2}', '-10^{-3}', '-10^{-4}'}
-    {'-10^{1}', '-10^{0}', '-10^{-1}', '-10^{-2}', '-10^{-3}'}
+    {'-10^{1}', '-10^{-1}', '-10^{-3}'}
+    {'-10^{1}', '-10^{-2}', '-10^{-4}'}
+    {'-10^{1}', '-10^{-1}', '-10^{-3}'}
 };
 panelDYLimits = [0, 2.5];
 panelDYTicks = 0:floor(panelDYLimits(2));
+parameterAxisLabelFontSize = 24;
+parameterTickLabelFontSize = 20;
+parameterMarkerSize = 400;
 parameterPopulationMode = "single";  % "single" or "all"
 % In "single" mode, entries are [Allen, Stringer, Hippocampus].
 % Use nan to randomly choose one population among those with the most valid N values.
@@ -370,6 +373,26 @@ axis(axB, 'square')
 
 %% Separate c/d figure
 
+sharedParameterNValues = [];
+
+for datasetIdx = 1:length(files)
+    datasetCurveData = cacheData.parameterCurves(datasetIdx);
+
+    for popIdx = 1:numel(datasetCurveData.populationCurves)
+        sharedParameterNValues = [sharedParameterNValues; ...
+            datasetCurveData.populationCurves(popIdx).Nplot(:)]; %#ok<AGROW>
+    end
+end
+
+sharedParameterNValues = sharedParameterNValues( ...
+    isfinite(sharedParameterNValues) & sharedParameterNValues > 0);
+
+if isempty(sharedParameterNValues)
+    parameterXLimits = [min(xTickValues), max(xTickValues)];
+else
+    parameterXLimits = [min(sharedParameterNValues), max(sharedParameterNValues)];
+end
+
 parameterFigure = figure('Name', 'Figure 5 panels c and d', ...
     'Color', 'w');
 
@@ -399,7 +422,7 @@ for datasetIdx = 1:length(files)
         end
 
         % Circles are exact inversions. Solid lines are the double-well approximation.
-        scatter(axC, curve.Nplot, curve.hFit, markerSize, ...
+        scatter(axC, curve.Nplot, curve.hFit, parameterMarkerSize, ...
             'Marker', 'o', ...
             'MarkerEdgeColor', markerEdgeColor, ...
             'MarkerFaceColor', popColor, ...
@@ -419,21 +442,23 @@ for datasetIdx = 1:length(files)
 
     ylabel(axC, [labelFont 'External field {\ith}'], ...
         'Interpreter', 'tex', ...
-        'FontSize', subAxisLabelFontSize)
+        'FontSize', parameterAxisLabelFontSize)
 
-    formatParameterAxis(axC, textFontName, tickLabelFontSize, xTickValues, xTickLabels)
+    formatParameterAxis(axC, textFontName, parameterTickLabelFontSize, xTickValues, xTickLabels)
     if plotExternalFieldLogY
         set(axC, 'YScale', 'log')
         ylim(axC, panelCYLimits(datasetIdx, :))
         yticks(axC, panelCYTicks{datasetIdx})
         yticklabels(axC, panelCYTickLabels{datasetIdx})
     end
-    setParameterAxisXLim(axC, cacheData.parameterCurves(datasetIdx))
+    xlim(axC, parameterXLimits)
 
     if datasetIdx == length(files)
         xlabel(axC, [labelFont 'Number of neurons {\itN}'], ...
             'Interpreter', 'tex', ...
-            'FontSize', subAxisLabelFontSize)
+            'FontSize', parameterAxisLabelFontSize)
+    else
+        xticklabels(axC, repmat({''}, size(get(axC, 'XTick'))))
     end
 end
 
@@ -456,7 +481,7 @@ for datasetIdx = 1:length(files)
         end
 
         % Circles are exact inversions. Solid and dashed lines show approximations.
-        scatter(axD, curve.Nplot, curve.lambdaFit, markerSize, ...
+        scatter(axD, curve.Nplot, curve.lambdaFit, parameterMarkerSize, ...
             'Marker', 'o', ...
             'MarkerEdgeColor', markerEdgeColor, ...
             'MarkerFaceColor', popColor, ...
@@ -472,7 +497,7 @@ for datasetIdx = 1:length(files)
     end
 
     if datasetIdx == 1
-        exactLegendHandle = scatter(axD, nan, nan, markerSize, ...
+        exactLegendHandle = scatter(axD, nan, nan, parameterMarkerSize, ...
             'Marker', 'o', ...
             'MarkerEdgeColor', markerEdgeColor, ...
             'MarkerFaceColor', [0.65 0.65 0.65], ...
@@ -494,10 +519,10 @@ for datasetIdx = 1:length(files)
 
     ylabel(axD, [labelFont 'Interaction strength \lambda'], ...
         'Interpreter', 'tex', ...
-        'FontSize', subAxisLabelFontSize)
+        'FontSize', parameterAxisLabelFontSize)
 
-    formatParameterAxis(axD, textFontName, tickLabelFontSize, xTickValues, xTickLabels)
-    setParameterAxisXLim(axD, cacheData.parameterCurves(datasetIdx))
+    formatParameterAxis(axD, textFontName, parameterTickLabelFontSize, xTickValues, xTickLabels)
+    xlim(axD, parameterXLimits)
     ylim(axD, panelDYLimits)
     yticks(axD, panelDYTicks)
     yticklabels(axD, arrayfun(@num2str, panelDYTicks, 'UniformOutput', false))
@@ -505,7 +530,9 @@ for datasetIdx = 1:length(files)
     if datasetIdx == length(files)
         xlabel(axD, [labelFont 'Number of neurons {\itN}'], ...
             'Interpreter', 'tex', ...
-            'FontSize', subAxisLabelFontSize)
+            'FontSize', parameterAxisLabelFontSize)
+    else
+        xticklabels(axD, repmat({''}, size(get(axD, 'XTick'))))
     end
 end
 

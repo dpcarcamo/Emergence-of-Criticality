@@ -16,7 +16,7 @@ The code is organized around helper functions in the repository root, dataset-sp
 
 Most plotting scripts rely on these root-level helper functions:
 
-- `hlambda.m`: infers Curie-Weiss parameters from `mu`, `chi`, and `N`.
+- `hlambda.m`: infers Curie-Weiss parameters from `m`, `chi`, and `N`.
 - `muChiExact2Spin.m`: evaluates exact finite-size statistics and moments.
 - `Jacobian.m`: evaluates the local mapping volume between parameter space and statistics space.
 
@@ -47,6 +47,20 @@ The mapping below follows the current draft paper captions.
 
 - Fig. 5c-d: `Plots/lambdamu.m`
   Compares exact finite-size inference against the double-well approximation for selected populations from each dataset.
+
+- Fig. 5 assembled figure: `Plots/Figure5Panels.m`
+  Generates the current Figure 5 layout: neural data relative to the critical region, inferred free energy for fixed statistics, separate 3-by-2 parameter panels for `h` and `lambda` versus `N`, and the full-statistic double-well trajectories in `(h, lambda)` space. The script also prints separate comparison/inset figures used for Illustrator assembly.
+
+## Supplementary Figure Scripts
+
+- Curie-Weiss signatures supplement: `Plots/SupplementaryCurieWeissFigures.m`
+  Generates the six-panel supplementary Curie-Weiss figure: specific heat versus temperature, specific heat versus interaction scale, Jacobian magnitude versus temperature, Jacobian magnitude versus interaction scale, response to field perturbations with the `~|\delta h^{-1}|` guide, and entropy versus energy.
+
+- Original Curie-Weiss signatures exploration: `Plots/signaturespapercurieweiss.m`
+  Retained as the source exploratory script for the Curie-Weiss signature panels and dataset-specific diagnostics.
+
+- Shuffled full-data control: `Plots/ShuffledFullDataFigure1.m`
+  Recomputes full-data statistics after independently shuffling each neuron's time series and plots the Figure 1-style statistics and parameter panels.
 
 ## Running Notes
 
