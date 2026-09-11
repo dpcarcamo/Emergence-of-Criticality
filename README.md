@@ -12,6 +12,17 @@ The code is organized around helper functions in the repository root, dataset-sp
 - `Allen/`, `Hippo/`, `Salamander/`, and `Stringer/` contain dataset-specific parsing, cleaning, and saved data files.
 - Root-level `.m` files contain shared Curie-Weiss calculations, exact statistics, Jacobians, and inverse mappings.
 
+## Data Included In Git
+
+The repository tracks the processed data needed by the current plotting scripts:
+
+- `Allen/Allenhldata.mat`
+- `Hippo/hippomuchidata.mat`
+- `Stringer/stringerhldata.mat`
+- `Stringer/stringerhldata2.mat`
+
+Large binary data are stored with Git LFS. Install Git LFS before cloning if you need the `.mat` data files locally. Raw Allen, hippocampus, and Stringer source recordings are not tracked because the plotting scripts use the processed files above and the raw recordings are much larger than the processed plotting data.
+
 ## Main Dependencies
 
 Most plotting scripts rely on these root-level helper functions:
