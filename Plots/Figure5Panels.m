@@ -18,7 +18,7 @@ addpath(fullfile(repoRoot, 'Stringer'))
 
 %% Figure settings
 
-files = ["Allenhldata.mat", "stringerhldata2.mat", "hippomuchidata.mat"];
+files = ["Allenhldata.mat", "stringerhldata.mat", "hippomuchidata.mat"];
 datasetNames = ["Allen", "Stringer", "Hippocampus"];
 datasetColors = ["#2676ad", "#2f682c", "#4f4cc4"];
 
