@@ -39,7 +39,7 @@ cd Emergence-of-Criticality
 git lfs pull
 ```
 
-For an existing clone, run `git lfs pull` from its root to retrieve any missing LFS objects. The MATLAB source requires no compilation. Installation time depends primarily on the MATLAB installation and data download; the four tracked processed files occupy approximately 0.94 GB in total on disk.
+For an existing clone, run `git lfs pull` from its root to retrieve any missing LFS objects. The MATLAB source requires no compilation. Installation time depends primarily on the MATLAB installation and data download; the three tracked processed files occupy approximately 915 MB in total on disk.
 
 Open MATLAB and set the current folder to the cloned repository root. Then run:
 
@@ -60,7 +60,7 @@ The following three files are the empirical inputs used by the main figure scrip
 | [`Hippo/hippomuchidata.mat`](Hippo/hippomuchidata.mat) | Hippocampus | 888 MB |
 | [`Stringer/stringerhldata.mat`](Stringer/stringerhldata.mat) | Stringer et al. visual cortex | 18.7 MB |
 
-The repository also tracks `Stringer/stringerhldata2.mat` (23.5 MB), the output filename used by `Stringer/dataprocessing.m`. The current main figure scripts, including `Figure5Panels.m`, load **`stringerhldata.mat`**.
+The current main figure scripts, including `Figure5Panels.m`, load **`Stringer/stringerhldata.mat`**. `Stringer/dataprocessing.m` uses the same output filename and stops if that file already exists. Before deliberately regenerating the data, move or back up the existing file. Preprocessing includes random subpopulation selection, so a new run need not reproduce the distributed summaries exactly.
 
 The processed files store population statistics and fitted model parameters. The plotting scripts use the following variables:
 

@@ -6,7 +6,13 @@ scriptDir = fileparts(mfilename('fullpath'));
 repoRoot = fileparts(scriptDir);
 dataFolder = fullfile(scriptDir, 'data');
 infoFile = fullfile(scriptDir, 'data_info.csv');
-outputFile = fullfile(scriptDir, 'stringerhldata2.mat');
+outputFile = fullfile(scriptDir, 'stringerhldata.mat');
+
+% Preserve the processed data used by the paper unless explicitly backed up.
+if isfile(outputFile)
+    error('Stringer:OutputExists', ...
+        'Output file already exists: %s. Move or back it up before regenerating.', outputFile)
+end
 
 addpath(repoRoot)
 addpath(dataFolder)
